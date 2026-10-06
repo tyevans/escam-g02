@@ -235,39 +235,38 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       </div>
     </div>
   </main>
+  <script src="/jmuxer.min.js"></script>
   <script>
+    const liveVideo = document.getElementById('liveVideo');
     const liveImg = document.getElementById('liveImg');
-    if (liveImg) {
-      liveImg.onerror = () => {
-        setTimeout(() => { liveImg.src = '/api/v1/stream?' + Date.now(); }, 1500);
-      };
-    }
-    const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
-    ws.binaryType = 'arraybuffer';
-
-    let decoder = null;
-    let canvas = null;
-    let ctx = null;
+    let jmuxer = null;
     let frameCount = 0;
     let lastFpsTime = performance.now();
 
-    if (window.VideoDecoder) {
-      canvas = document.createElement('canvas');
-      canvas.id = 'liveCanvas';
-      canvas.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0;border-radius:4px;';
-      const vp = document.querySelector('.viewport-card');
-      if (vp && liveImg) vp.insertBefore(canvas, liveImg);
-      ctx = canvas.getContext('2d');
-      decoder = new VideoDecoder({
-        output: (frame) => {
-          if (canvas.width !== frame.displayWidth || canvas.height !== frame.displayHeight) {
-            canvas.width = frame.displayWidth;
-            canvas.height = frame.displayHeight;
-            canvas.style.display = 'block';
-            if (liveImg) liveImg.style.display = 'none';
-          }
-          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-          frame.close();
+    if (window.JMuxer) {
+      jmuxer = new JMuxer({
+        node: 'liveVideo',
+        mode: 'video',
+        flv: false,
+        fps: 20,
+        clearBuffer: true,
+        debug: false
+      });
+      liveVideo.style.display = 'block';
+      if (liveImg) {
+        liveImg.src = '';
+        liveImg.style.display = 'none';
+      }
+      liveVideo.play().catch(() => {});
+    }
+
+    const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
+    ws.binaryType = 'arraybuffer';
+
+    ws.onmessage = (event) => {
+      if (event.data instanceof ArrayBuffer) {
+        if (jmuxer) {
+          jmuxer.feed({ video: new Uint8Array(event.data) });
           frameCount++;
           const now = performance.now();
           if (now - lastFpsTime >= 1000) {
@@ -277,28 +276,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
             frameCount = 0;
             lastFpsTime = now;
           }
-        },
-        error: (e) => console.warn("VideoDecoder:", e)
-      });
-      decoder.configure({ codec: 'avc1.4d002a', optimizeForLatency: true });
-    }
-
-    ws.onmessage = (event) => {
-      if (event.data instanceof ArrayBuffer) {
-        if (!decoder || decoder.state !== 'configured') return;
-        const u8 = new Uint8Array(event.data);
-        let nalType = 0;
-        if (u8.length > 4 && u8[0] === 0 && u8[1] === 0 && u8[2] === 0 && u8[3] === 1) {
-          nalType = u8[4] & 0x1f;
         }
-        const isKey = nalType === 5 || nalType === 7;
-        try {
-          decoder.decode(new EncodedVideoChunk({
-            type: isKey ? 'key' : 'delta',
-            timestamp: performance.now() * 1000,
-            data: event.data
-          }));
-        } catch (e) {}
       } else {
         try {
           const msg = JSON.parse(event.data);
@@ -395,3 +373,4 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
 </html>"#;
 
 pub const LIVE_FRAME_JPEG: &[u8] = include_bytes!("frame.jpg");
+pub const JMUXER_JS: &str = include_str!("jmuxer.min.js");

@@ -159,20 +159,28 @@ impl RtspClient {
             play_uri, session, auth_play
         );
         sock.write_all(play_req.as_bytes()).await?;
-        let _ = sock.read(&mut buf).await?;
+
+        // Read PLAY response byte-by-byte until \r\n\r\n so no interleaved RTP frames are eaten
+        let mut play_resp = Vec::with_capacity(512);
+        let mut b = [0u8; 1];
+        while !play_resp.ends_with(b"\r\n\r\n") {
+            sock.read_exact(&mut b).await?;
+            play_resp.push(b[0]);
+        }
         info!("[rtsp_client] RTSP PLAY initiated successfully on {}", self.stream_path);
 
         // 5. Ingestion Loop reading interleaved RTP packets
         let mut depacketizer = RtpDepacketizer::new();
-        let mut hdr = [0u8; 4];
+        let mut rest = [0u8; 3];
 
         loop {
-            sock.read_exact(&mut hdr).await?;
-            if hdr[0] != b'$' {
+            sock.read_exact(&mut b).await?;
+            if b[0] != b'$' {
                 continue;
             }
-            let chan = hdr[1];
-            let len = ((hdr[2] as usize) << 8) | (hdr[3] as usize);
+            sock.read_exact(&mut rest).await?;
+            let chan = rest[0];
+            let len = ((rest[1] as usize) << 8) | (rest[2] as usize);
 
             let mut payload = vec![0u8; len];
             sock.read_exact(&mut payload).await?;

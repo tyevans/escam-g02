@@ -75,17 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Build AppState with Live Frame Buffer & RTSP H.264 Ingestion
     let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
     let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
-    let frame_writer = frame.clone();
-
-    // Background task to poll real camera frames from local DSP encoder for snapshot
-    tokio::spawn(async move {
-        loop {
-            if let Some(jpg) = fetch_camera_jpeg().await {
-                *frame_writer.write().await = jpg;
-            }
-            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-        }
-    });
 
     let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(64);
     let rtsp_sender = video_broadcast.clone();
@@ -170,6 +159,14 @@ async fn handle_http_connection(
             body
         );
         stream.write_all(resp.as_bytes()).await?;
+    } else if method == "GET" && path == "/jmuxer.min.js" {
+        let body = escam_web::assets::JMUXER_JS;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/javascript; charset=utf-8\r\nCache-Control: public, max-age=86400\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
     } else if method == "GET" && path == "/api/v1/status" {
         let status = state.status.lock().await.clone();
         let body = serde_json::to_string(&status)?;
@@ -222,7 +219,13 @@ async fn handle_http_connection(
         );
         stream.write_all(resp.as_bytes()).await?;
     } else if method == "GET" && path == "/api/v1/snapshot" {
-        let jpeg = state.frame.read().await.clone();
+        let jpeg = match fetch_camera_jpeg().await {
+            Some(jpg) => {
+                *state.frame.write().await = jpg.clone();
+                jpg
+            }
+            None => state.frame.read().await.clone(),
+        };
         let header = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
             jpeg.len()
