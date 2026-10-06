@@ -19,3 +19,4 @@
 | ADR-0017 | Embedded Axum Web Server & Snappy Modern Single-Page App (SPA) | Accepted | 2026-10-05 |
 | ADR-0018 | Astrophotography Engine, Raw 10-bit Bayer Frames, and Embedded INDI Protocol | Accepted | 2026-10-05 |
 | ADR-0019 | Vendor Software Ejection, Clean Boot, and Init Orchestration | Accepted | 2026-10-05 |
+| ADR-0020 | Zero-Vendor Hardware Video Encoding and VPU Ingestion Architecture | Accepted | 2026-10-05 |
