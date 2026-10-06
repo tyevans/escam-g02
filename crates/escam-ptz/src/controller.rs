@@ -16,8 +16,8 @@ use tokio::sync::Mutex;
 /// Default deadband threshold around (0, 0) normalized joystick inputs.
 pub const DEFAULT_DEADBAND: f32 = 0.12;
 
-/// Default time slice duration for interleaved diagonal motion bursts (~50ms).
-pub const DEFAULT_SLICE_DURATION: Duration = Duration::from_millis(50);
+/// Default time slice duration for interleaved diagonal motion bursts (~200ms).
+pub const DEFAULT_SLICE_DURATION: Duration = Duration::from_millis(200);
 
 #[derive(Error, Debug)]
 pub enum PtzError {
@@ -47,6 +47,8 @@ struct PtzInner {
     active_interleave: Option<tokio::task::JoinHandle<()>>,
     interleave_tx: Option<tokio::sync::watch::Sender<DiagonalCommand>>,
     last_hw_cmd: MotorRun,
+    smooth_x: f32,
+    smooth_y: f32,
 }
 
 pub struct PtzController<M: MotorDevice + 'static> {
@@ -79,6 +81,8 @@ impl<M: MotorDevice + 'static> PtzController<M> {
             active_interleave: None,
             interleave_tx: None,
             last_hw_cmd: MotorRun::default(),
+            smooth_x: 0.0,
+            smooth_y: 0.0,
         };
 
         Self {
@@ -123,31 +127,43 @@ impl<M: MotorDevice + 'static> PtzController<M> {
     /// Drives continuous motion using virtual joystick input (x, y) where x, y in [-1.0, 1.0].
     /// Applies deadband filtering, soft limits, state deduplication, and interleaved diagonal motion.
     pub async fn drive_joystick(&self, x: f32, y: f32) -> Result<(), PtzError> {
-        let effective_x = if x.abs() >= self.deadband { x } else { 0.0 };
-        let effective_y = if y.abs() >= self.deadband { y } else { 0.0 };
+        let mut inner = self.inner.lock().await;
 
-        let mut pan_dir = if effective_x > 0.0 {
-            3 // Right / CW
-        } else if effective_x < 0.0 {
-            4 // Left / CCW
+        let (effective_x, effective_y) = if x.abs() < self.deadband && y.abs() < self.deadband {
+            inner.smooth_x = 0.0;
+            inner.smooth_y = 0.0;
+            (0.0, 0.0)
+        } else {
+            // Exponential momentum smoothing: 40% historical inertia, 60% new target
+            inner.smooth_x = inner.smooth_x * 0.4 + x * 0.6;
+            inner.smooth_y = inner.smooth_y * 0.4 + y * 0.6;
+            // Calm Tilt down to 80% to match Pan angular velocity and prevent aggressive jerking
+            (inner.smooth_x, inner.smooth_y * 0.8)
+        };
+
+        // Swapped left/right to feel completely natural from screen/viewer perspective:
+        // Pushing screen right (> 0) pans view right (command 4)
+        // Pushing screen left (< 0) pans view left (command 3)
+        let mut pan_dir = if effective_x > self.deadband {
+            4
+        } else if effective_x < -self.deadband {
+            3
         } else {
             0
         };
 
-        let mut tilt_dir = if effective_y > 0.0 {
+        let mut tilt_dir = if effective_y > self.deadband {
             1 // Up
-        } else if effective_y < 0.0 {
+        } else if effective_y < -self.deadband {
             2 // Down
         } else {
             0
         };
 
-        let mut inner = self.inner.lock().await;
-
         // Enforce soft limits against current coordinates
-        if pan_dir == 3 && inner.state.pan_deg >= self.config.pan_max_deg {
+        if pan_dir == 4 && inner.state.pan_deg >= self.config.pan_max_deg {
             pan_dir = 0;
-        } else if pan_dir == 4 && inner.state.pan_deg <= self.config.pan_min_deg {
+        } else if pan_dir == 3 && inner.state.pan_deg <= self.config.pan_min_deg {
             pan_dir = 0;
         }
 
@@ -159,6 +175,8 @@ impl<M: MotorDevice + 'static> PtzController<M> {
 
         if pan_dir == 0 && tilt_dir == 0 {
             // Graceful stop / Centered joystick
+            inner.smooth_x = 0.0;
+            inner.smooth_y = 0.0;
             if let Some(handle) = inner.active_interleave.take() {
                 handle.abort();
             }
@@ -225,6 +243,8 @@ impl<M: MotorDevice + 'static> PtzController<M> {
 
     pub async fn stop(&self) -> Result<(), PtzError> {
         let mut inner = self.inner.lock().await;
+        inner.smooth_x = 0.0;
+        inner.smooth_y = 0.0;
         if let Some(handle) = inner.active_interleave.take() {
             handle.abort();
         }
@@ -296,7 +316,7 @@ mod tests {
         let controller = PtzController::new(mock_motor.clone(), config);
 
         controller.drive_joystick(0.8, 0.0).await.unwrap();
-        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(3, 0));
+        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(4, 0));
 
         controller.stop().await.unwrap();
         assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(0, 0));

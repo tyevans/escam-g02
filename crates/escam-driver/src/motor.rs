@@ -51,8 +51,8 @@ impl MotorRun {
     pub fn from_direction(dir: Direction) -> Self {
         match dir {
             Direction::Stop => Self::new(0, 0),
-            Direction::PanRight => Self::new(3, 0),
-            Direction::PanLeft => Self::new(4, 0),
+            Direction::PanRight => Self::new(4, 0), // Swapped for natural perspective
+            Direction::PanLeft => Self::new(3, 0),  // Swapped for natural perspective
             Direction::TiltUp => Self::new(0, 1),
             Direction::TiltDown => Self::new(0, 2),
         }

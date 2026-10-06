@@ -54,7 +54,7 @@ async fn test_state_deduplication_single_axis() {
     // Direction change to Left should invoke run() a second time
     controller.drive_joystick(-0.8, 0.0).await.unwrap();
     assert_eq!(*motor.run_calls.lock().unwrap(), 2);
-    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(4, 0));
+    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(3, 0));
 
     // Multiple stop calls should deduplicate to a single stop()
     for _ in 0..5 {
@@ -77,7 +77,7 @@ async fn test_deadband_filtering() {
     // Pushing Pan beyond deadband activates motor
     controller.drive_joystick(0.25, 0.05).await.unwrap();
     assert_eq!(*motor.run_calls.lock().unwrap(), 1);
-    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(3, 0));
+    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(4, 0));
 
     // Returning to center gracefully stops
     controller.drive_joystick(0.0, 0.0).await.unwrap();
@@ -126,7 +126,7 @@ async fn test_diagonal_interleaving_alternates_axes() {
 
     controller.drive_joystick(0.8, 0.8).await.unwrap();
     // Slice 0: Pan initial burst
-    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(3, 0));
+    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(4, 0));
 
     // Wait ~30ms for slice 1 to alternate to Tilt
     tokio::time::sleep(Duration::from_millis(30)).await;
@@ -134,7 +134,7 @@ async fn test_diagonal_interleaving_alternates_axes() {
 
     // Wait ~25ms for slice 2 to alternate back to Pan
     tokio::time::sleep(Duration::from_millis(25)).await;
-    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(3, 0));
+    assert_eq!(*motor.inner.last_run.lock().unwrap(), MotorRun::new(4, 0));
 
     // Graceful stop terminates the interleaving task
     controller.stop().await.unwrap();
