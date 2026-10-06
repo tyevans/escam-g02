@@ -1,0 +1,14 @@
+[package]
+name = "motor-test"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "motor-test"
+path = "src/main.rs"
+
+[dependencies]
+escam-core = { path = "../escam-core" }
+escam-driver = { path = "../escam-driver" }

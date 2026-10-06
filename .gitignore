@@ -1,0 +1,15 @@
+.worktrees/
+dist/
+site/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+.mutmut-cache/
+mutants/
+.task-prompt.md
+HANDOVER.md
+.specops/*
+!.specops/grandfathered_debt.json
+target/
+.firmware_dump/

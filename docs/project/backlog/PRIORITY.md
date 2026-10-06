@@ -1,0 +1,18 @@
+# Backlog Priority Index
+
+Strict sequential order of execution for engineering tasks.
+
+- **TASK-0001 (Complete)**: [`0001-initial-architecture-spike-and-setup`](complete/0001-initial-architecture-spike-and-setup.md)
+- **TASK-0002 (Complete)**: [`0002-implement-motor-ioctl-bindings-driver`](complete/0002-implement-motor-ioctl-bindings-driver.md)
+- **TASK-0003 (Complete)**: [`0003-implement-gkio-gpio-ircut-driver`](complete/0003-implement-gkio-gpio-ircut-driver.md)
+- **TASK-0004 (Complete)**: [`0004-build-standalone-motor-test-armv6-musl`](complete/0004-build-standalone-motor-test-armv6-musl.md)
+- **TASK-0005 (Complete)**: [`0005-h264-nalu-ingestion-and-rtp-packetizer`](complete/0005-h264-nalu-ingestion-and-rtp-packetizer.md)
+- **TASK-0006 (Complete)**: [`0006-async-webrtc-peer-connection-signaling`](complete/0006-async-webrtc-peer-connection-signaling.md)
+- **TASK-0007 (Complete)**: [`0007-jerk-limited-scurve-trajectory-generator`](complete/0007-jerk-limited-scurve-trajectory-generator.md)
+- **TASK-0008 (Complete)**: [`0008-ptz-coordinate-engine-virtual-joystick`](complete/0008-ptz-coordinate-engine-virtual-joystick.md)
+- **TASK-0009 (Complete)**: [`0009-raw-bayer-frame-reader-and-fits-serializer`](complete/0009-raw-bayer-frame-reader-and-fits-serializer.md)
+- **TASK-0010 (Complete)**: [`0010-embedded-indi-ccd-protocol-server`](complete/0010-embedded-indi-ccd-protocol-server.md)
+- **TASK-0011 (Complete)**: [`0011-axum-http-server-and-rest-api`](complete/0011-axum-http-server-and-rest-api.md)
+- **TASK-0012 (Complete)**: [`0012-snappy-web-spa-virtual-joystick`](complete/0012-snappy-web-spa-virtual-joystick.md)
+- **TASK-0013 (Complete)**: [`0013-startup-init-and-vendor-ejection`](complete/0013-startup-init-and-vendor-ejection.md)
+- **TASK-0014 (Complete)**: [`0014-hardware-memory-benchmarking-and-security`](complete/0014-hardware-memory-benchmarking-and-security.md)

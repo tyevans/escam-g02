@@ -1,0 +1,23 @@
+[package]
+name = "escamd"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "escamd"
+path = "src/main.rs"
+
+[dependencies]
+escam-core = { path = "../escam-core" }
+escam-driver = { path = "../escam-driver" }
+escam-ptz = { path = "../escam-ptz" }
+escam-media = { path = "../escam-media" }
+escam-astro = { path = "../escam-astro" }
+escam-web = { path = "../escam-web" }
+escam-system = { path = "../escam-system" }
+axum = "0.8"
+tokio = { version = "1.42", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

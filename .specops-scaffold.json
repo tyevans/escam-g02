@@ -1,0 +1,19 @@
+{
+  "project_name": "escam-g02",
+  "profiles": [
+    "core",
+    "bdd",
+    "ddd"
+  ],
+  "profile_checksums": {
+    "core": "ce7d571970711574eb68b9a714a52a1e9cbc9249eab53bf63a3aec959eac2e4a",
+    "bdd": "1252436ae01dc966839bbc6c2711fbd91ff39e24d01895f694ff3ba9a6535f01",
+    "ddd": "4783941fcec98dc77099bc965a4147f0cd919521b0bdd936200565729180ec98"
+  },
+  "bounded_contexts": [],
+  "ci_provider": "github",
+  "created_paths": [
+    ".specops-scaffold.json"
+  ],
+  "timestamp": "2026-10-06T02:18:04.929714+00:00"
+}

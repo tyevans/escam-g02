@@ -1,0 +1,16 @@
+[package]
+name = "escam-system"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+escam-core = { path = "../escam-core" }
+tokio = { version = "1.42", features = ["sync", "time", "rt"] }
+libc = "0.2"
+thiserror = "2.0"
+tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1.42", features = ["macros", "rt-multi-thread"] }

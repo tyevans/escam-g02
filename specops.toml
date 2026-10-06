@@ -1,0 +1,79 @@
+[project]
+name = "escam-g02"
+repo = ""
+docs_dir = "docs/project"
+site_output = "dist/site"
+
+[architecture]
+file_length_limit = 500
+buffer_target = 10
+buffer_warning_threshold = 6
+
+components = [
+  { id = "core", name = "Core Daemon Orchestrator", path = "src/core" },
+  { id = "driver", name = "Hardware Driver & Kernel Node Interface", path = "src/driver" },
+  { id = "ptz", name = "PTZ S-Curve Motion Control", path = "src/ptz" },
+  { id = "media", name = "High-Performance Video & WebRTC Pipeline", path = "src/media" },
+  { id = "astro", name = "Astrophotography & INDI Subsystem", path = "src/astro" },
+  { id = "web", name = "Web Server & Snappy Frontend SPA", path = "src/web" },
+  { id = "system", name = "System Lifecycle & Vendor Software Ejection", path = "src/system" }
+]
+
+[vertical_slices]
+slices = [
+  { type = "spike", name = "Architectural Spike", prefix = "SPIKE:", requires_adr = true },
+  { type = "domain", name = "Domain Model & State Handlers" },
+  { type = "api", name = "Public API Contracts" },
+  { type = "ui", name = "User Interface & Component Stories" },
+  { type = "test", name = "Blackbox Frontdoor Test Suite" }
+]
+
+[quality]
+testing_style = "blackbox-frontdoor"
+require_bdd = true
+preflight = [
+  "uv run pytest"
+]
+
+[execution]
+agent_command = "agy --dangerously-skip-permissions -p {prompt}"
+agent_max_attempts = 3
+git_branch_prefix = "feat/"
+backlog_isolation = true
+
+[profiles]
+installed = ["core", "bdd", "ddd", "security"]
+version = "0.1.0"
+
+[security]
+secret_scanning = true
+lockfile_immutability = false
+enforce_lockfile = false
+sandbox_enabled = true
+allowed_commands = ["pytest", "git", "uv", "cargo"]
+reporting_contact = "security@example.com"
+
+[invariants.file_limits]
+grandfathered = [
+  "firmware_dump/app/web/addport.html",
+  "firmware_dump/app/web/chinese/language.js",
+  "firmware_dump/app/web/cropper.js",
+  "firmware_dump/app/web/display.html",
+  "firmware_dump/app/web/english/language.js",
+  "firmware_dump/app/web/images/urchin.js",
+  "firmware_dump/app/web/js/network.js",
+  "firmware_dump/app/web/js/video.js",
+  "firmware_dump/app/web/lib/controls.js",
+  "firmware_dump/app/web/lib/dragdrop.js",
+  "firmware_dump/app/web/lib/effects.js",
+  "firmware_dump/app/web/lib/prototype.js",
+  "firmware_dump/app/web/mainpage.html",
+  "firmware_dump/app/web/mainpage4.html",
+  "firmware_dump/app/web/mainpage9.html",
+  "firmware_dump/app/web/md.html",
+  "firmware_dump/app/web/record.html",
+  "firmware_dump/app/web/scheduleex.html",
+  "firmware_dump/app/web/time.html",
+  "firmware_dump/app/web/video.html",
+  "firmware_dump/app/web/wifi.html",
+]
