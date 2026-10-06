@@ -14,3 +14,4 @@ HANDOVER.md
 target/
 .firmware_dump/
 .playwright-mcp/
+.agents/last-docs-run
