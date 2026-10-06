@@ -9,4 +9,4 @@ pub mod watchdog;
 
 pub use init::EjectionManager;
 pub use telemetry::{ProcessMemory, TelemetryAuditor, MAX_ALLOWED_RSS_KB};
-pub use watchdog::{MockWatchdog, WatchdogDevice};
+pub use watchdog::{LinuxWatchdog, MockWatchdog, WatchdogDevice};

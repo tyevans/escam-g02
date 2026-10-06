@@ -191,11 +191,28 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
 
     function triggerSnapshot() { window.open('/api/v1/snapshot', '_blank'); }
 
-    // Virtual Joystick Controller
+    // Virtual Joystick Controller with HTTP Fallback & Throttling
     const zone = document.getElementById('joystickZone');
     const handle = document.getElementById('joystickHandle');
     let dragging = false;
+    let lastPtzSend = 0;
     const maxRadius = 55;
+
+    function sendJoystickCoords(x, y) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ptz_joystick', x, y }));
+      } else {
+        const now = Date.now();
+        if (now - lastPtzSend > 75) { // ~13 Hz rate limit
+          lastPtzSend = now;
+          fetch('/api/v1/ptz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'Joystick', x, y })
+          }).catch(() => {});
+        }
+      }
+    }
 
     function handleMove(clientX, clientY) {
       const rect = zone.getBoundingClientRect();
@@ -211,9 +228,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       handle.style.transform = `translate(${dx}px, ${dy}px)`;
       const normX = dx / maxRadius;
       const normY = -dy / maxRadius;
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ptz_joystick', x: normX, y: normY }));
-      }
+      sendJoystickCoords(normX, normY);
     }
 
     zone.addEventListener('pointerdown', (e) => { dragging = true; handleMove(e.clientX, e.clientY); });
@@ -222,9 +237,11 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       if (dragging) {
         dragging = false;
         handle.style.transform = 'translate(0px, 0px)';
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'ptz_joystick', x: 0, y: 0 }));
-        }
+        fetch('/api/v1/ptz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'Stop' })
+        }).catch(() => {});
       }
     });
   </script>

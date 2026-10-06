@@ -11,6 +11,7 @@ use escam_astro::IndiServer;
 use escam_core::{CameraConfig, CameraStatus};
 use escam_driver::{IrCutController, MockGpioDevice, MockMotorDevice};
 use escam_ptz::PtzController;
+use escam_system::WatchdogDevice;
 use escam_web::AppState;
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -84,7 +85,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("ESCAM Web UI & WebRTC server listening on http://{}", bind_addr);
     eprintln!("[escamd] Step 6 done: listening on http://{}", bind_addr);
 
-    // 4. Serve HTTP/1 Frontdoor
+    // 4. Hardware Watchdog Feeder Task (keeps system alive)
+    if let Ok(mut wd) = escam_system::LinuxWatchdog::open() {
+        eprintln!("[escamd] Hardware watchdog (/dev/watchdog) opened; starting 5s keepalive feeder.");
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                let _ = wd.feed();
+            }
+        });
+    }
+
+    // 5. Serve HTTP/1 Frontdoor
     eprintln!("[escamd] Step 8: Entering HTTP/1 accept loop...");
     loop {
         let (stream, remote_addr) = listener.accept().await?;

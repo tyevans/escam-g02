@@ -56,3 +56,44 @@ struct MotorSpeed {
 - **GPIO 17**: Reverse drive (Night / Astro H-alpha mode / IR-Cut OFF)
 
 Actuation protocol: Assert high (1) for 100ms, then assert low (0) to eliminate static current.
+
+---
+
+## 3. Hardware Watchdog (`/dev/watchdog`)
+
+- **Kernel Driver**: `gk_wdt_v1_00` (Goke Microelectronics Watchdog Timer)
+- **MMIO Base**: `0xf3006000`
+- **Default Hardware Timeout**: 60 seconds
+
+### Feeding Protocol
+- **Keepalive Feed**: Writing any byte (e.g. `\0`) to `/dev/watchdog` resets the hardware counter. Must be called at least once every 10 seconds.
+- **Safe Disarm (Magic Close)**: Writing character `'V'` (`0x56`) prior to closing the file descriptor safely disarms the watchdog timer without triggering an automatic SoC hardware reboot.
+
+---
+
+## 4. Video Sensor & Media Subsystem
+
+- **Sensor Hardware**: GalaxyCore GC1034 1/4" 720p CMOS Image Sensor (I2C address `0x42` / `0x6c`)
+- **Kernel Drivers**:
+  - `hal.ko`: Hardware Abstraction Layer
+  - `media.ko`: Goke Media Processing Platform (VENC / VI ring buffers)
+  - `sensor.ko`: CMOS Sensor Interface
+  - `gc1034_ex.ko`: GalaxyCore GC1034 kernel driver
+- **Hardware Device Nodes**:
+  - `/dev/gk_video` (major 248, minor 0): Video encoding ring buffer
+  - `/dev/adc` (major 10, minor 11): Analog-to-digital converter / ambient photoresistor
+- **Stock Stream Channels**:
+  - Channel 11 (`/11`): Main Stream (1280x720 @ 30 FPS, 1536 kbps H.264, GOP 60)
+  - Channel 12 (`/12`): Sub Stream (640x360 @ 15 FPS)
+
+---
+
+## 5. ARMv6 Architecture Constraints
+
+- **Processor**: ARM1176JZF-S @ 600MHz (ARMv6l, CPU part `0xb76`)
+- **Target Triple**: `arm-unknown-linux-musleabi` (soft-float ABI)
+- **Hardware Limitations**:
+  - **No NEON**: ARMv7 NEON SIMD instructions are strictly unsupported. Compression libraries (e.g. `simd-adler32`) must be disabled.
+  - **No 64-bit Atomics**: Lacks `LDREXD`/`STREXD` instructions. Rust crates utilizing `AtomicU64` (e.g. HTTP/2 `h2`) will crash with illegal instruction/SIGSEGV.
+  - **Unaligned Memory Access**: ARMv6 rotates unaligned 32-bit reads unless CP15 U-bit is set. Hash table lookups must use aligned data structures.
+
