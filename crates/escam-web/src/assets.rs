@@ -331,3 +331,5 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
   </script>
 </body>
 </html>"#;
+
+pub const LIVE_FRAME_JPEG: &[u8] = include_bytes!("frame.jpg");

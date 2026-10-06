@@ -48,11 +48,16 @@ mod tests {
         let ircut = Arc::new(IrCutController::new(gpio));
         let status = Arc::new(Mutex::new(CameraStatus::default()));
 
+        let frame = Arc::new(tokio::sync::RwLock::new(
+            crate::assets::LIVE_FRAME_JPEG.to_vec(),
+        ));
+
         AppState {
             config,
             status,
             ptz,
             ircut,
+            frame,
         }
     }
 

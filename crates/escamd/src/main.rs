@@ -72,12 +72,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("[escamd] Step 4: INDI server bind warning: {}", e),
     }
 
-    // 3. Build AppState
+    // 3. Build AppState with Live Frame Buffer
+    let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
+    let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
+    let frame_writer = frame.clone();
+
+    // Background task to poll real camera frames from local DSP encoder at ~15 FPS
+    tokio::spawn(async move {
+        loop {
+            if let Some(jpg) = fetch_camera_jpeg().await {
+                *frame_writer.write().await = jpg;
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(66)).await;
+        }
+    });
+
     let app_state = AppState {
         config: config.clone(),
         status: status.clone(),
         ptz: ptz.clone(),
         ircut: ircut.clone(),
+        frame,
     };
 
     let bind_addr = std::env::var("ESCAM_BIND").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
@@ -199,17 +214,7 @@ async fn handle_http_connection(
         );
         stream.write_all(resp.as_bytes()).await?;
     } else if method == "GET" && path == "/api/v1/snapshot" {
-        let jpeg = vec![
-            0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01,
-            0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02,
-            0x02, 0x02, 0x02, 0x03, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04,
-            0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0A, 0x0A, 0x09,
-            0x08, 0x09, 0x09, 0x0A, 0x0C, 0x0F, 0x0C, 0x0A, 0x0B, 0x0E, 0x0B, 0x09, 0x09, 0x0D,
-            0x11, 0x0D, 0x0E, 0x0F, 0x10, 0x10, 0x11, 0x10, 0x0A, 0x0C, 0x12, 0x13, 0x12, 0x10,
-            0x13, 0x0F, 0x10, 0x10, 0x10, 0xFF, 0xC9, 0x00, 0x0B, 0x08, 0x00, 0x01, 0x00, 0x01,
-            0x01, 0x01, 0x11, 0x00, 0xFF, 0xCC, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xFF, 0xDA,
-            0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xD2, 0xCF, 0x20, 0xFF, 0xD9,
-        ];
+        let jpeg = state.frame.read().await.clone();
         let header = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
             jpeg.len()
@@ -219,23 +224,12 @@ async fn handle_http_connection(
     } else if method == "GET" && (path == "/api/v1/stream" || path == "/api/v1/stream.mjpg") {
         let header = "HTTP/1.1 200 OK\r\nContent-Type: multipart/x-mixed-replace; boundary=frame\r\nCache-Control: no-cache\r\nAccess-Control-Allow-Origin: *\r\n\r\n";
         if stream.write_all(header.as_bytes()).await.is_ok() {
-            let frame = vec![
-                0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01,
-                0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43, 0x00, 0x03, 0x02, 0x02,
-                0x02, 0x02, 0x02, 0x03, 0x02, 0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06, 0x04,
-                0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06, 0x05, 0x06, 0x09, 0x08, 0x0A, 0x0A, 0x09,
-                0x08, 0x09, 0x09, 0x0A, 0x0C, 0x0F, 0x0C, 0x0A, 0x0B, 0x0E, 0x0B, 0x09, 0x09, 0x0D,
-                0x11, 0x0D, 0x0E, 0x0F, 0x10, 0x10, 0x11, 0x10, 0x0A, 0x0C, 0x12, 0x13, 0x12, 0x10,
-                0x13, 0x0F, 0x10, 0x10, 0x10, 0xFF, 0xC9, 0x00, 0x0B, 0x08, 0x00, 0x01, 0x00, 0x01,
-                0x01, 0x01, 0x11, 0x00, 0xFF, 0xCC, 0x00, 0x06, 0x00, 0x10, 0x10, 0x05, 0xFF, 0xDA,
-                0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xD2, 0xCF, 0x20, 0xFF, 0xD9,
-            ];
-            let part_header = format!(
-                "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: {}\r\n\r\n",
-                frame.len()
-            );
-
             loop {
+                let frame = state.frame.read().await.clone();
+                let part_header = format!(
+                    "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: {}\r\n\r\n",
+                    frame.len()
+                );
                 if stream.write_all(part_header.as_bytes()).await.is_err() {
                     break;
                 }
@@ -248,10 +242,112 @@ async fn handle_http_connection(
                 tokio::time::sleep(tokio::time::Duration::from_millis(66)).await;
             }
         }
+    } else if method == "GET" && path == "/api/v1/ws" {
+        let key_line = req_str
+            .lines()
+            .find(|l| l.to_lowercase().starts_with("sec-websocket-key:"));
+        if let Some(line) = key_line {
+            let key = line.split(':').nth(1).unwrap_or("").trim();
+            use sha1::Digest;
+            let mut hasher = sha1::Sha1::new();
+            hasher.update(key.as_bytes());
+            hasher.update(b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+            let hash = hasher.finalize();
+            use base64::Engine;
+            let accept = base64::engine::general_purpose::STANDARD.encode(hash);
+
+            let resp = format!(
+                "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {}\r\n\r\n",
+                accept
+            );
+            stream.write_all(resp.as_bytes()).await?;
+
+            let mut ws_buf = [0u8; 1024];
+            while let Ok(n) = stream.read(&mut ws_buf).await {
+                if n < 2 {
+                    break;
+                }
+                let opcode = ws_buf[0] & 0x0f;
+                if opcode == 0x08 {
+                    break;
+                }
+                let masked = (ws_buf[1] & 0x80) != 0;
+                let mut payload_len = (ws_buf[1] & 0x7f) as usize;
+                let mut offset = 2;
+                if payload_len == 126 {
+                    if n < 4 {
+                        break;
+                    }
+                    payload_len = u16::from_be_bytes([ws_buf[2], ws_buf[3]]) as usize;
+                    offset = 4;
+                }
+                if masked {
+                    if n < offset + 4 {
+                        break;
+                    }
+                    let mask = [
+                        ws_buf[offset],
+                        ws_buf[offset + 1],
+                        ws_buf[offset + 2],
+                        ws_buf[offset + 3],
+                    ];
+                    offset += 4;
+                    let payload_end = (offset + payload_len).min(n);
+                    for i in offset..payload_end {
+                        ws_buf[i] ^= mask[(i - offset) % 4];
+                    }
+                    if let Ok(text) = std::str::from_utf8(&ws_buf[offset..payload_end]) {
+                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(text) {
+                            if json["type"] == "ptz_joystick" {
+                                let x = json["x"].as_f64().unwrap_or(0.0) as f32;
+                                let y = json["y"].as_f64().unwrap_or(0.0) as f32;
+                                let _ = state.ptz.drive_joystick(x, y).await;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     } else {
         let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
         stream.write_all(resp.as_bytes()).await?;
     }
 
     Ok(())
+}
+
+async fn fetch_camera_jpeg() -> Option<Vec<u8>> {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let mut sock = tokio::time::timeout(
+        tokio::time::Duration::from_millis(500),
+        tokio::net::TcpStream::connect("127.0.0.1:80"),
+    )
+    .await
+    .ok()?
+    .ok()?;
+
+    let req = b"GET /tmpfs/auto.jpg HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n";
+    sock.write_all(req).await.ok()?;
+
+    let mut buf = Vec::with_capacity(96 * 1024);
+    let mut chunk = [0u8; 8192];
+    loop {
+        match tokio::time::timeout(
+            tokio::time::Duration::from_millis(300),
+            sock.read(&mut chunk),
+        )
+        .await
+        {
+            Ok(Ok(n)) if n > 0 => buf.extend_from_slice(&chunk[..n]),
+            _ => break,
+        }
+    }
+
+    let pos = buf.windows(4).position(|w| w == b"\r\n\r\n")?;
+    let body = &buf[pos + 4..];
+    if body.len() > 100 && body.starts_with(&[0xFF, 0xD8]) {
+        Some(body.to_vec())
+    } else {
+        None
+    }
 }
