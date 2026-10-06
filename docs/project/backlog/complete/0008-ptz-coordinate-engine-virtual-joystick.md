@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0007
 target_bc: ptz
-persona: Samir
 mutation_scope:
 - crates/escam-ptz/src/controller.rs
 ---

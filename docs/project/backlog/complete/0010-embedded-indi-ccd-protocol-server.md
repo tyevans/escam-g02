@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0009
 target_bc: astro
-persona: Marcus
 mutation_scope:
 - crates/escam-astro/src/indi.rs
 ---

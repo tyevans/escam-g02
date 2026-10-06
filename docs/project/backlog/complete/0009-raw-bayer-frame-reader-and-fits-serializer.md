@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0008
 target_bc: astro
-persona: Marcus
 mutation_scope:
 - crates/escam-astro/src/fits.rs
 - crates/escam-astro/src/bayer.rs

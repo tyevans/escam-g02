@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0004
 target_bc: media
-persona: Marcus
 mutation_scope:
 - crates/escam-media/src/nalu.rs
 ---

@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0003
 target_bc: driver
-persona: Elena
 mutation_scope:
 - crates/motor-test/src/main.rs
 ---

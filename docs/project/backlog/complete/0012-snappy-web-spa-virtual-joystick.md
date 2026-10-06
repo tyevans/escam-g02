@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0011
 target_bc: web
-persona: Samir
 mutation_scope:
 - crates/escam-web/src/assets.rs
 ---

@@ -13,7 +13,6 @@ governing_stories:
 - US-0007
 - US-0011
 target_bc: web
-persona: Samir
 mutation_scope:
 - crates/escamd/src/main.rs
 - crates/escam-web/src/api.rs

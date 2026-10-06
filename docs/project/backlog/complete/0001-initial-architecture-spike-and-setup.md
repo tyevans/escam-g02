@@ -12,7 +12,6 @@ governing_prds:
 governing_stories:
 - US-0001
 target_bc: core
-persona: Elena
 mutation_scope:
 - crates/escam-core/src/lib.rs
 ---

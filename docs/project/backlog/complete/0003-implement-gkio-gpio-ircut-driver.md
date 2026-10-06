@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0002
 target_bc: driver
-persona: Elena
 mutation_scope:
 - crates/escam-driver/src/gpio.rs
 ---

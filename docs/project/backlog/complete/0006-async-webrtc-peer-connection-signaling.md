@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0005
 target_bc: media
-persona: Samir
 mutation_scope:
 - crates/escam-media/src/webrtc.rs
 ---

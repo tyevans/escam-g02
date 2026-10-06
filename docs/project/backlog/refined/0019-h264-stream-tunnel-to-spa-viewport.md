@@ -12,7 +12,6 @@ governing_stories:
 - US-0005
 - US-0011
 target_bc: media
-persona: Samir
 mutation_scope:
 - crates/escam-web/src/assets.rs
 ---

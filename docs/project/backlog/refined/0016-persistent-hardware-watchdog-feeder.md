@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0012
 target_bc: system
-persona: Alex
 mutation_scope:
 - crates/escam-system/src/watchdog.rs
 ---

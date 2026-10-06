@@ -11,7 +11,6 @@ governing_stories:
 - US-0008
 - US-0009
 target_bc: astro
-persona: Elena
 mutation_scope:
 - crates/escam-astro/src/fits.rs
 ---

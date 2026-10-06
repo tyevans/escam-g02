@@ -10,7 +10,6 @@ governing_prds:
 governing_stories:
 - US-0013
 target_bc: system
-persona: Elena
 mutation_scope:
 - crates/escam-system/src/telemetry.rs
 ---

@@ -11,7 +11,6 @@ governing_stories:
 - US-0012
 - US-0013
 target_bc: system
-persona: Alex
 mutation_scope:
 - crates/escam-system/src/init.rs
 ---
