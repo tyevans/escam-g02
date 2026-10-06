@@ -69,10 +69,10 @@ jobs:
 
       - name: Install uv
         if: steps.filter.outputs.lockfile == 'true' || steps.filter.outputs.artifacts == 'true' || steps.filter.outputs.health == 'true' || steps.filter.outputs.python == 'true'
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
-          enable-cache: true
+          enable-cache: false
 
       - name: Set up Python
         if: steps.filter.outputs.artifacts == 'true' || steps.filter.outputs.health == 'true' || steps.filter.outputs.python == 'true'
@@ -82,20 +82,22 @@ jobs:
 
       - name: Install dependencies
         if: steps.filter.outputs.artifacts == 'true' || steps.filter.outputs.health == 'true' || steps.filter.outputs.python == 'true'
-        run: uv sync
+        run: |
+          uv tool install git+https://github.com/tyevans/spec-ops.git
+          uv pip install --system pytest hypothesis
 
       - name: Verify dependency lockfile integrity
-        if: steps.filter.outputs.lockfile == 'true'
+        if: steps.filter.outputs.lockfile == 'true' && hashFiles('uv.lock') != ''
         run: uv lock --check
 
       - name: Verify artifact numbering uniqueness (ADRs, PRDs, Tasks, Stories)
         if: steps.filter.outputs.artifacts == 'true'
-        run: uv run spec-ops health --numbering
+        run: spec-ops health --numbering
 
       - name: Verify SpecOps health & file length invariants (<500 lines)
         if: steps.filter.outputs.health == 'true'
-        run: uv run spec-ops health
+        run: spec-ops health
 
       - name: Execute blackbox test suite
         if: steps.filter.outputs.python == 'true'
-        run: uv run pytest
+        run: pytest

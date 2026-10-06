@@ -28,21 +28,21 @@ jobs:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
-          enable-cache: true
+          enable-cache: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install dependencies
-        run: uv sync
+      - name: Install spec-ops
+        run: uv tool install git+https://github.com/tyevans/spec-ops.git
 
       - name: Build Diataxis Documentation and Living Visualizer
-        run: uv run spec-ops docs build --base-url /${{ github.event.repository.name }}/
+        run: spec-ops docs build --base-url /${{ github.event.repository.name }}/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
