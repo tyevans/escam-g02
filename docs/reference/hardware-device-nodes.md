@@ -25,9 +25,10 @@ This reference documents the reverse-engineered Linux character device nodes on 
 ### Data Structures
 
 ```c
+// Note: In kernel module motor.ko, titldir is at offset 0 and pandir is at offset 4:
 struct MotorRun {
-    int pandir;   // 1 = Right (CW), 2 = Left (CCW), 0 = Stop
-    int titldir;  // 3 = Up, 4 = Down, 0 = Stop
+    int titldir;  // 3 = Up, 4 = Down, 0 = Stop (offset 0)
+    int pandir;   // 1 = Right (CW), 2 = Left (CCW), 0 = Stop (offset 4)
 };
 
 struct MotorSpeed {

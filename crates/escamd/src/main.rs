@@ -9,7 +9,7 @@
 
 use escam_astro::IndiServer;
 use escam_core::{CameraConfig, CameraStatus};
-use escam_driver::{IrCutController, MockGpioDevice, MockMotorDevice};
+use escam_driver::{IrCutController, MockGpioDevice, MockMotorDevice, MotorDevice};
 use escam_ptz::PtzController;
 use escam_system::WatchdogDevice;
 use escam_web::AppState;
@@ -40,6 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let motor: Arc<dyn escam_driver::MotorDevice> = match escam_driver::LinuxMotorDevice::open() {
         Ok(dev) => {
             eprintln!("[escamd] Connected to physical /dev/motor hardware!");
+            let _ = dev.set_speed(100);
             Arc::new(dev)
         }
         Err(e) => {
@@ -85,16 +86,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("ESCAM Web UI & WebRTC server listening on http://{}", bind_addr);
     eprintln!("[escamd] Step 6 done: listening on http://{}", bind_addr);
 
-    // 4. Hardware Watchdog Feeder Task (keeps system alive)
-    if let Ok(mut wd) = escam_system::LinuxWatchdog::open() {
-        eprintln!("[escamd] Hardware watchdog (/dev/watchdog) opened; starting 5s keepalive feeder.");
-        tokio::spawn(async move {
-            loop {
-                tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-                let _ = wd.feed();
+    // 4. Hardware Watchdog Feeder Task (resilient retry acquire loop)
+    tokio::spawn(async move {
+        loop {
+            match escam_system::LinuxWatchdog::open() {
+                Ok(mut wd) => {
+                    eprintln!("[escamd] Hardware watchdog (/dev/watchdog) acquired! Feeding every 5s.");
+                    loop {
+                        if let Err(e) = wd.feed() {
+                            eprintln!("[escamd] Watchdog feed error: {}", e);
+                            break;
+                        }
+                        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+                    }
+                }
+                Err(_e) => {
+                    // EBUSY if vendor ipc_server currently holds it. Wait and retry.
+                    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                }
             }
-        });
-    }
+        }
+    });
 
     // 5. Serve HTTP/1 Frontdoor
     eprintln!("[escamd] Step 8: Entering HTTP/1 accept loop...");

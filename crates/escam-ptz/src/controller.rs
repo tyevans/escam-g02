@@ -49,21 +49,25 @@ impl<M: MotorDevice> PtzController<M> {
         *self.state.lock().await
     }
 
+    pub fn config(&self) -> &CameraConfig {
+        &self.config
+    }
+
     /// Drives continuous motion using virtual joystick input (x, y) where x, y in [-1.0, 1.0].
     pub async fn drive_joystick(&self, x: f32, y: f32) -> Result<(), PtzError> {
         let mut state = self.state.lock().await;
 
-        let pan_dir = if x > 0.1 && state.pan_deg < self.config.pan_max_deg {
+        let pan_dir = if x > 0.15 {
             1 // Right / CW
-        } else if x < -0.1 && state.pan_deg > self.config.pan_min_deg {
+        } else if x < -0.15 {
             2 // Left / CCW
         } else {
             0
         };
 
-        let tilt_dir = if y > 0.1 && state.tilt_deg < self.config.tilt_max_deg {
+        let tilt_dir = if y > 0.15 {
             3 // Up
-        } else if y < -0.1 && state.tilt_deg > self.config.tilt_min_deg {
+        } else if y < -0.15 {
             4 // Down
         } else {
             0
