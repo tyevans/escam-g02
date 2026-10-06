@@ -32,29 +32,29 @@ pub enum MotorError {
 /// C ABI struct matching `struct stMotorRun` passed to MOTOR_IOCTL_RUN (8 bytes)
 ///
 /// In the Goke motor.ko kernel driver:
-/// - Offset 0: `titldir` (3 = Up, 4 = Down, 0 = Stop)
-/// - Offset 4: `pandir`  (1 = Right / CW, 2 = Left / CCW, 0 = Stop)
+/// - Offset 0: `pandir`  (3 = Right / CW, 4 = Left / CCW, 0 = Stop)
+/// - Offset 4: `titldir` (1 = Up, 2 = Down, 0 = Stop)
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct MotorRun {
-    /// 3 = Up, 4 = Down, 0 = Stop (Offset 0 in kernel struct)
-    pub titldir: i32,
-    /// 1 = Right / CW, 2 = Left / CCW, 0 = Stop (Offset 4 in kernel struct)
+    /// 3 = Right / CW, 4 = Left / CCW, 0 = Stop (Offset 0 in kernel struct)
     pub pandir: i32,
+    /// 1 = Up, 2 = Down, 0 = Stop (Offset 4 in kernel struct)
+    pub titldir: i32,
 }
 
 impl MotorRun {
     pub fn new(pandir: i32, titldir: i32) -> Self {
-        Self { titldir, pandir }
+        Self { pandir, titldir }
     }
 
     pub fn from_direction(dir: Direction) -> Self {
         match dir {
             Direction::Stop => Self::new(0, 0),
-            Direction::PanRight => Self::new(1, 0),
-            Direction::PanLeft => Self::new(2, 0),
-            Direction::TiltUp => Self::new(0, 3),
-            Direction::TiltDown => Self::new(0, 4),
+            Direction::PanRight => Self::new(3, 0),
+            Direction::PanLeft => Self::new(4, 0),
+            Direction::TiltUp => Self::new(0, 1),
+            Direction::TiltDown => Self::new(0, 2),
         }
     }
 }

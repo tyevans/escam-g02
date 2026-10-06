@@ -58,17 +58,17 @@ impl<M: MotorDevice> PtzController<M> {
         let mut state = self.state.lock().await;
 
         let pan_dir = if x > 0.15 {
-            1 // Right / CW
+            3 // Right / CW
         } else if x < -0.15 {
-            2 // Left / CCW
+            4 // Left / CCW
         } else {
             0
         };
 
         let tilt_dir = if y > 0.15 {
-            3 // Up
+            1 // Up
         } else if y < -0.15 {
-            4 // Down
+            2 // Down
         } else {
             0
         };
@@ -104,7 +104,7 @@ mod tests {
         let controller = PtzController::new(mock_motor.clone(), config);
 
         controller.drive_joystick(0.8, 0.0).await.unwrap();
-        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(1, 0));
+        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(3, 0));
 
         controller.stop().await.unwrap();
         assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(0, 0));

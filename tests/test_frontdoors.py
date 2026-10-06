@@ -69,13 +69,13 @@ def test_ptz_joystick_command_envelope():
     Verifies x, y coordinates [-1.0, 1.0] are mapped cleanly.
     """
     def map_joystick(x: float, y: float):
-        pan_dir = 1 if x > 0.1 else (2 if x < -0.1 else 0)
-        tilt_dir = 3 if y > 0.1 else (4 if y < -0.1 else 0)
+        pan_dir = 3 if x > 0.1 else (4 if x < -0.1 else 0)
+        tilt_dir = 1 if y > 0.1 else (2 if y < -0.1 else 0)
         return {"pandir": pan_dir, "titldir": tilt_dir}
 
     assert map_joystick(0.0, 0.0) == {"pandir": 0, "titldir": 0}
-    assert map_joystick(0.5, 0.0) == {"pandir": 1, "titldir": 0}
-    assert map_joystick(-0.5, 0.0) == {"pandir": 2, "titldir": 0}
-    assert map_joystick(0.0, 0.8) == {"pandir": 0, "titldir": 3}
-    assert map_joystick(0.0, -0.8) == {"pandir": 0, "titldir": 4}
-    assert map_joystick(0.5, 0.5) == {"pandir": 1, "titldir": 3}
+    assert map_joystick(0.5, 0.0) == {"pandir": 3, "titldir": 0}
+    assert map_joystick(-0.5, 0.0) == {"pandir": 4, "titldir": 0}
+    assert map_joystick(0.0, 0.8) == {"pandir": 0, "titldir": 1}
+    assert map_joystick(0.0, -0.8) == {"pandir": 0, "titldir": 2}
+    assert map_joystick(0.5, 0.5) == {"pandir": 3, "titldir": 1}

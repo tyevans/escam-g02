@@ -15,11 +15,11 @@ def test_joystick_input_bounds_invariant(x: float, y: float):
     Invariant: Virtual joystick magnitude must remain clamped and directional
     mapping must never produce out-of-bounds motor commands.
     """
-    pan_dir = 1 if x > 0.1 else (2 if x < -0.1 else 0)
-    tilt_dir = 3 if y > 0.1 else (4 if y < -0.1 else 0)
+    pan_dir = 3 if x > 0.1 else (4 if x < -0.1 else 0)
+    tilt_dir = 1 if y > 0.1 else (2 if y < -0.1 else 0)
     
-    assert pan_dir in (0, 1, 2)
-    assert tilt_dir in (0, 3, 4)
+    assert pan_dir in (0, 3, 4)
+    assert tilt_dir in (0, 1, 2)
 
 
 @given(st.integers(min_value=1, max_value=2000), st.integers(min_value=10, max_value=5000))
