@@ -44,7 +44,8 @@ def main():
     commands = [
         ("cp /mnt/mtd/ipc/tmpfs/escamd.gz /mnt/mtd/ipc/conf/escamd.gz", 0.5),
         ("zcat /mnt/mtd/ipc/tmpfs/escamd.gz > /mnt/mtd/ipc/tmpfs/escamd.new && chmod +x /mnt/mtd/ipc/tmpfs/escamd.new", 2.5),
-        ("killall -9 escamd onvif net_detect sd.sh sd_detect 2>/dev/null; rm -f /mnt/mtd/ipc/tmpfs/escamd && mv /mnt/mtd/ipc/tmpfs/escamd.new /mnt/mtd/ipc/tmpfs/escamd && /mnt/mtd/ipc/tmpfs/escamd > /mnt/mtd/ipc/tmpfs/escamd.log 2>&1 &", 1.5),
+        ("killall -9 escamd onvif net_detect sd.sh sd_detect 2>/dev/null", 1.0),
+        ("rm -f /mnt/mtd/ipc/tmpfs/escamd && mv /mnt/mtd/ipc/tmpfs/escamd.new /mnt/mtd/ipc/tmpfs/escamd && chmod +x /mnt/mtd/ipc/tmpfs/escamd && /mnt/mtd/ipc/tmpfs/escamd > /mnt/mtd/ipc/tmpfs/escamd.log 2>&1 &", 1.5),
         ("ps | grep escamd", 0.5),
         ("cat /mnt/mtd/ipc/tmpfs/escamd.log", 0.5),
     ]

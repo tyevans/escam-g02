@@ -77,7 +77,11 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
     main { width: 100%; max-width: 920px; display: grid; grid-template-columns: 1fr; gap: 12px; }
     .viewport-card { position: relative; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; border: 2px solid var(--brass-border); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85); }
     body.theme-fnaf .viewport-card { border: 8px solid #232a22; outline: 2px dashed #3a4738; outline-offset: -5px; box-shadow: 0 0 0 3px #111610, 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(57, 255, 20, 0.2); }
-    video { width: 100%; height: 100%; object-fit: contain; }
+    video, #liveImg { width: 100%; height: 100%; object-fit: contain; transition: filter 0.25s ease-in-out; }
+    body.theme-fnaf.night-vision video,
+    body.theme-fnaf.night-vision #liveImg {
+      filter: grayscale(100%) sepia(100%) hue-rotate(85deg) saturate(380%) brightness(1.15) contrast(1.25);
+    }
     .crt-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
     body.theme-fnaf .crt-overlay { opacity: 1; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.85) 100%); background-size: 100% 3px, 100% 100%; animation: crtFlicker 0.15s infinite; }
     @keyframes crtFlicker { 0% { opacity: 0.92; } 50% { opacity: 0.99; } 100% { opacity: 0.94; } }
@@ -282,9 +286,31 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
 
     function setIrCut(mode) {
       fetch('/api/v1/ircut', { method: 'POST', body: JSON.stringify({ mode }), headers: { 'Content-Type': 'application/json' } });
-      document.getElementById('btnDay').classList.toggle('active', mode === 'Day');
-      document.getElementById('btnNight').classList.toggle('active', mode === 'Night');
+      const isNight = mode === 'Night';
+      document.getElementById('btnDay').classList.toggle('active', !isNight);
+      document.getElementById('btnNight').classList.toggle('active', isNight);
+      document.body.classList.toggle('night-vision', isNight);
     }
+
+    fetch('/api/v1/status').then(r => r.json()).then(st => {
+      if (st.ircut_mode) {
+        const isNight = st.ircut_mode === 'Night';
+        document.getElementById('btnDay').classList.toggle('active', !isNight);
+        document.getElementById('btnNight').classList.toggle('active', isNight);
+        document.body.classList.toggle('night-vision', isNight);
+      }
+      if (st.irled_enabled !== undefined) {
+        irLedState = st.irled_enabled;
+        const btn = document.getElementById('btnIrLed');
+        if (btn) {
+          btn.classList.toggle('active', irLedState);
+          const norm = btn.querySelector('.norm-only');
+          const fnaf = btn.querySelector('.fnaf-only');
+          if (norm) norm.innerText = irLedState ? 'IR LED: ON' : 'IR LED: OFF';
+          if (fnaf) fnaf.innerText = irLedState ? 'IR ILLUM: ON' : 'IR ILLUM: OFF';
+        }
+      }
+    }).catch(() => {});
 
     let irLedState = false;
     function toggleIrLed() {
