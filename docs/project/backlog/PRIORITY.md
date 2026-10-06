@@ -24,3 +24,6 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0020 (Complete)**: [`0020-raw-bayer-frame-fits-export`](complete/0020-raw-bayer-frame-fits-export.md)
 - **TASK-0021 (Complete)**: [`0021-vendor-software-ejection-persistent-installer`](complete/0021-vendor-software-ejection-persistent-installer.md)
 - **TASK-0022 (Complete)**: [`0022-zero-vendor-vpu-streamer-and-unix-socket-ingestion`](complete/0022-zero-vendor-vpu-streamer-and-unix-socket-ingestion.md)
+- **TASK-0023 (Complete)**: [`0023-aggressive-binary-size-optimization-and-lto`](complete/0023-aggressive-binary-size-optimization-and-lto.md)
+- **TASK-0024 (Complete)**: [`0024-celestial-sidereal-rate-tracking-engine`](complete/0024-celestial-sidereal-rate-tracking-engine.md)
+- **TASK-0025 (Complete)**: [`0025-multi-frame-integration-and-live-stacking`](complete/0025-multi-frame-integration-and-live-stacking.md)
