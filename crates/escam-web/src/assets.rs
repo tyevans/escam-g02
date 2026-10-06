@@ -185,12 +185,13 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
   </div>
   <main>
     <div class="viewport-card">
-      <video id="liveVideo" autoplay playsinline muted></video>
+      <video id="liveVideo" autoplay playsinline muted style="display:none;"></video>
+      <img id="liveImg" src="/api/v1/stream" alt="Live Stream" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:4px;">
       <div class="crt-overlay"></div>
       <div class="hud-overlay">
         <span id="hudFps">25.0 FPS • 720p H.264</span>
         <span class="fnaf-only rec-dot">● REC</span>
-        <span id="hudLatency">&lt; 85ms Latency</span>
+        <span id="hudLatency">&lt; 65ms Latency</span>
       </div>
     </div>
     <div class="controls-grid">
@@ -235,6 +236,12 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
     </div>
   </main>
   <script>
+    const liveImg = document.getElementById('liveImg');
+    if (liveImg) {
+      liveImg.onerror = () => {
+        setTimeout(() => { liveImg.src = '/api/v1/stream?' + Date.now(); }, 1500);
+      };
+    }
     const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
     ws.onmessage = (msg) => { console.log("Telemetry:", msg.data); };
 

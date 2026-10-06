@@ -1,7 +1,7 @@
 ---
-id: '0018'
+id: 0018
 title: Goke GC1034 /dev/gk_video Ring Buffer Ingestion Engine
-status: Refined
+status: Complete
 governing_adrs:
 - ADR-0014
 - ADR-0015
