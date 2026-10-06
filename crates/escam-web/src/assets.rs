@@ -11,7 +11,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>L'Œil Céleste • ESCAM G02 Pure Rust</title>
+  <title>ESCAM G02 • Pure Rust Camera</title>
   <style>
     :root {
       --bg-dark: #0c110f;
@@ -198,35 +198,35 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
 </head>
 <body>
   <header>
-    <div class="logo">👁 L'ŒIL CÉLESTE <span>• DADA MÉCANIQUE</span></div>
-    <div class="badge" id="connStatus">WEBRTC • OP-CÉLESTE</div>
+    <div class="logo">⚡ ESCAM G02 <span>• Pure Rust Firmware</span></div>
+    <div class="badge" id="connStatus">WEBRTC ONLINE</div>
   </header>
   <main>
     <div class="viewport-card">
       <video id="liveVideo" autoplay playsinline muted></video>
       <div class="hud-overlay">
-        <span id="hudFps">25.0 FPS • 720p H.264 • OP-CÉLESTE</span>
-        <span id="hudLatency">< 85ms • Δt LATENCE</span>
+        <span id="hudFps">25.0 FPS • 720p H.264</span>
+        <span id="hudLatency">&lt; 85ms Latency</span>
       </div>
     </div>
     <div class="controls-grid">
       <div class="card">
-        <h3>L'Astre Pétrifié • Joystick S-Curve</h3>
+        <h3>PTZ S-Curve Virtual Joystick</h3>
         <div class="joystick-container" id="joystickZone">
           <div class="joystick-handle" id="joystickHandle"></div>
         </div>
       </div>
       <div class="card">
-        <h3>Régime Optique & Capteur</h3>
+        <h3>Optical & Sensor Mode</h3>
         <div class="btn-group">
-          <button id="btnDay" class="active" onclick="setIrCut('Day')">Aurore (IR-Cut ON)</button>
-          <button id="btnNight" onclick="setIrCut('Night')">Nocturne / Astro (Hα)</button>
+          <button id="btnDay" class="active" onclick="setIrCut('Day')">Day (IR-Cut ON)</button>
+          <button id="btnNight" onclick="setIrCut('Night')">Night / Astro (Hα)</button>
         </div>
-        <h3 style="margin-top: 16px;">Appareillage Précalibré</h3>
+        <h3 style="margin-top: 16px;">Quick Presets</h3>
         <div class="btn-group">
-          <button onclick="sendPtz('Home')">⌂ Origine (Home)</button>
-          <button onclick="sendPtz('Stop')">⊘ Arrêt (Halt)</button>
-          <button onclick="triggerSnapshot()">✦ Cliché (Snapshot)</button>
+          <button onclick="sendPtz('Home')">Home</button>
+          <button onclick="sendPtz('Stop')">Halt</button>
+          <button onclick="triggerSnapshot()">Snapshot</button>
         </div>
       </div>
     </div>
