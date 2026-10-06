@@ -1,7 +1,7 @@
 ---
 id: '0016'
 title: Persistent Hardware Watchdog Keepalive Daemon and Magic Close Handler
-status: Refined
+status: Complete
 governing_adrs:
 - ADR-0014
 - ADR-0019

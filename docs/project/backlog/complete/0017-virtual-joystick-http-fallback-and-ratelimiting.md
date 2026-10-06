@@ -1,7 +1,7 @@
 ---
 id: '0017'
 title: Virtual Joystick HTTP/1 Fallback & Web UI Rate-Limiting
-status: Refined
+status: Complete
 governing_adrs:
 - ADR-0016
 - ADR-0017
