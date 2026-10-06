@@ -100,6 +100,90 @@ impl Nalu {
     }
 }
 
+/// Continuous ring buffer stream reader extracting Annex-B formatted NALUs across chunks
+#[derive(Debug, Default)]
+pub struct H264StreamReader {
+    buffer: Vec<u8>,
+    pub sps: Option<Bytes>,
+    pub pps: Option<Bytes>,
+}
+
+impl H264StreamReader {
+    pub fn new() -> Self {
+        Self {
+            buffer: Vec::with_capacity(65536),
+            sps: None,
+            pps: None,
+        }
+    }
+
+    /// Appends incoming raw bytes from ring buffer or network and extracts all complete NALUs.
+    pub fn ingest(&mut self, chunk: &[u8]) -> Vec<Nalu> {
+        self.buffer.extend_from_slice(chunk);
+        let mut nalus = Vec::new();
+        let mut i = 0;
+        let len = self.buffer.len();
+
+        while i < len {
+            let prefix_end = if i + 4 <= len && &self.buffer[i..i + 4] == [0, 0, 0, 1] {
+                i + 4
+            } else if i + 3 <= len && &self.buffer[i..i + 3] == [0, 0, 1] {
+                i + 3
+            } else {
+                i += 1;
+                continue;
+            };
+
+            let mut next_start = None;
+            for j in prefix_end..len {
+                if (j + 4 <= len && &self.buffer[j..j + 4] == [0, 0, 0, 1])
+                    || (j + 3 <= len && &self.buffer[j..j + 3] == [0, 0, 1])
+                {
+                    next_start = Some(j);
+                    break;
+                }
+            }
+
+            if let Some(next_pos) = next_start {
+                let nalu_data = &self.buffer[prefix_end..next_pos];
+                if !nalu_data.is_empty() {
+                    let header = nalu_data[0];
+                    let ref_idc = (header >> 5) & 0x03;
+                    let nalu_type = NaluType::from(header);
+                    let payload = Bytes::copy_from_slice(nalu_data);
+
+                    if nalu_type == NaluType::Sps {
+                        self.sps = Some(payload.clone());
+                    } else if nalu_type == NaluType::Pps {
+                        self.pps = Some(payload.clone());
+                    }
+
+                    nalus.push(Nalu {
+                        nalu_type,
+                        ref_idc,
+                        data: payload,
+                    });
+                }
+                i = next_pos;
+            } else {
+                break;
+            }
+        }
+
+        if i < self.buffer.len() {
+            self.buffer.drain(0..i);
+        } else {
+            self.buffer.clear();
+        }
+
+        nalus
+    }
+
+    pub fn buffered_bytes(&self) -> usize {
+        self.buffer.len()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -118,5 +202,29 @@ mod tests {
         assert_eq!(nalus[0].nalu_type, NaluType::Sps);
         assert_eq!(nalus[1].nalu_type, NaluType::Pps);
         assert_eq!(nalus[2].nalu_type, NaluType::IdrSlice);
+    }
+
+    #[test]
+    fn test_stream_reader_chunked_ingestion() {
+        let mut reader = H264StreamReader::new();
+
+        // Feed partial bytes across three chunks
+        let chunk1 = [0x00, 0x00, 0x00, 0x01, 0x67, 0x42];
+        let chunk2 = [0x00, 0x1f, 0x00, 0x00, 0x01, 0x68, 0xce];
+        let chunk3 = [0x3c, 0x80, 0x00, 0x00, 0x00, 0x01, 0x65, 0x88, 0x00, 0x00, 0x01];
+
+        let nalus1 = reader.ingest(&chunk1);
+        assert_eq!(nalus1.len(), 0); // Incomplete SPS
+
+        let nalus2 = reader.ingest(&chunk2);
+        assert_eq!(nalus2.len(), 1); // SPS completed
+        assert_eq!(nalus2[0].nalu_type, NaluType::Sps);
+        assert!(reader.sps.is_some());
+
+        let nalus3 = reader.ingest(&chunk3);
+        assert_eq!(nalus3.len(), 2); // PPS and IDR completed
+        assert_eq!(nalus3[0].nalu_type, NaluType::Pps);
+        assert_eq!(nalus3[1].nalu_type, NaluType::IdrSlice);
+        assert!(reader.pps.is_some());
     }
 }

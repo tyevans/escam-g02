@@ -7,6 +7,6 @@ pub mod nalu;
 pub mod rtp;
 pub mod webrtc;
 
-pub use nalu::{Nalu, NaluType};
+pub use nalu::{H264StreamReader, Nalu, NaluType};
 pub use rtp::{RtpPacket, RtpPacketizer};
 pub use webrtc::{SignalingMessage, WebRtcError, WebRtcSession};

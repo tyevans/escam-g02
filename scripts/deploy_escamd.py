@@ -29,7 +29,7 @@ def main():
     s.send(b"\n")
     time.sleep(0.2)
     s.recv(1024)
-    s.send(b"killall -9 escamd 2>/dev/null\nrm -f /mnt/mtd/ipc/tmpfs/escamd.log\n")
+    s.send(b"killall -9 escamd chksock 2>/dev/null\nrm -f /mnt/mtd/ipc/tmpfs/escamd.log\n")
     time.sleep(0.3)
     s.recv(1024)
 
