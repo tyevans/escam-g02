@@ -141,13 +141,13 @@ impl<M: MotorDevice + 'static> PtzController<M> {
             (inner.smooth_x, inner.smooth_y * 0.8)
         };
 
-        // Swapped left/right to feel completely natural from screen/viewer perspective:
-        // Pushing screen right (> 0) pans view right (command 4)
-        // Pushing screen left (< 0) pans view left (command 3)
+        // Flipped pan direction to match horizontally mirrored camera sensor:
+        // Pushing screen right (> 0) pans view right (command 3)
+        // Pushing screen left (< 0) pans view left (command 4)
         let mut pan_dir = if effective_x > self.deadband {
-            4
-        } else if effective_x < -self.deadband {
             3
+        } else if effective_x < -self.deadband {
+            4
         } else {
             0
         };
@@ -161,9 +161,9 @@ impl<M: MotorDevice + 'static> PtzController<M> {
         };
 
         // Enforce soft limits against current coordinates
-        if pan_dir == 4 && inner.state.pan_deg >= self.config.pan_max_deg {
+        if pan_dir == 3 && inner.state.pan_deg >= self.config.pan_max_deg {
             pan_dir = 0;
-        } else if pan_dir == 3 && inner.state.pan_deg <= self.config.pan_min_deg {
+        } else if pan_dir == 4 && inner.state.pan_deg <= self.config.pan_min_deg {
             pan_dir = 0;
         }
 
@@ -316,7 +316,7 @@ mod tests {
         let controller = PtzController::new(mock_motor.clone(), config);
 
         controller.drive_joystick(0.8, 0.0).await.unwrap();
-        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(4, 0));
+        assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(3, 0));
 
         controller.stop().await.unwrap();
         assert_eq!(*mock_motor.last_run.lock().unwrap(), MotorRun::new(0, 0));

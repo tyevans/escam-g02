@@ -215,7 +215,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         node: 'liveVideo',
         mode: 'video',
         flv: false,
-        fps: 20,
+        fps: 30,
         flushingTime: 0,
         maxDelay: 50,
         clearBuffer: true,

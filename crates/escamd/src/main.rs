@@ -66,15 +66,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("[escamd] Step 4: INDI server bind warning: {}", e),
     }
 
-    // 3. Build AppState with Live Frame Buffer & RTSP H.264 Ingestion
+    // 3. Build AppState with Live Frame Buffer & Dual-Mode Video Ingestion (VPU Socket / RTSP)
     let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
     let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
 
     let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(16);
-    let rtsp_sender = video_broadcast.clone();
+    let video_sender = video_broadcast.clone();
     tokio::spawn(async move {
-        let client = escam_media::RtspClient::new("127.0.0.1:554", "11", rtsp_sender);
-        client.run_loop().await;
+        let vpu_sock = std::path::Path::new("/tmp/venc.sock");
+        loop {
+            if vpu_sock.exists() {
+                eprintln!("[escamd] Ingesting video via zero-copy VPU Unix socket (/tmp/venc.sock)...");
+                let vpu_reader = escam_media::VpuUnixStreamReader::new(vpu_sock);
+                vpu_reader.run_loop(video_sender.clone()).await;
+            } else {
+                eprintln!("[escamd] /tmp/venc.sock not present; falling back to loopback RTSP (127.0.0.1:554)...");
+                let client = escam_media::RtspClient::new("127.0.0.1:554", "11", video_sender.clone());
+                tokio::select! {
+                    _ = client.run_loop() => {},
+                    _ = async {
+                        loop {
+                            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                            if std::path::Path::new("/tmp/venc.sock").exists() {
+                                break;
+                            }
+                        }
+                    } => {
+                        eprintln!("[escamd] Detected /tmp/venc.sock! Transitioning to VPU socket ingestion...");
+                    }
+                }
+            }
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        }
     });
 
     let app_state = AppState {

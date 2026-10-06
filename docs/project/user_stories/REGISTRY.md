@@ -15,3 +15,4 @@
 | US-0011 | Provide snappy web SPA with virtual joystick and live WebRTC | Accepted | Samir | web | PRD-0005 |
 | US-0012 | Terminate vendor daemons and establish clean init runner | Accepted | Elena | system | PRD-0006 |
 | US-0013 | Measure and verify boot time <2s and RAM consumption <8MB | Accepted | Elena | system | PRD-0006 |
+| US-0014 | Ingest Zero-Vendor Hardware H.264 VPU Stream via Unix Domain Socket | Accepted | Elena | media | PRD-0006 |
