@@ -8,7 +8,7 @@ use axum::extract::State;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Json;
 use escam_core::{CameraConfig, CameraStatus, IrCutMode};
-use escam_driver::{IrCutController, MockGpioDevice, MockMotorDevice};
+use escam_driver::{GpioDevice, IrCutController, MotorDevice};
 use escam_ptz::PtzController;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -18,8 +18,8 @@ use tokio::sync::Mutex;
 pub struct AppState {
     pub config: CameraConfig,
     pub status: Arc<Mutex<CameraStatus>>,
-    pub ptz: Arc<PtzController<MockMotorDevice>>,
-    pub ircut: Arc<IrCutController<MockGpioDevice>>,
+    pub ptz: Arc<PtzController<Arc<dyn MotorDevice>>>,
+    pub ircut: Arc<IrCutController<Arc<dyn GpioDevice>>>,
 }
 
 #[derive(Debug, Deserialize)]

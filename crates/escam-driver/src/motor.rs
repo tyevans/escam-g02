@@ -71,6 +71,24 @@ pub trait MotorDevice: Send + Sync {
     fn get_position(&self) -> Result<(i32, i32), MotorError>;
 }
 
+impl<T: MotorDevice + ?Sized> MotorDevice for Arc<T> {
+    fn stop(&self) -> Result<(), MotorError> {
+        (**self).stop()
+    }
+    fn run(&self, run_cmd: MotorRun) -> Result<(), MotorError> {
+        (**self).run(run_cmd)
+    }
+    fn set_speed(&self, speed: u32) -> Result<(), MotorError> {
+        (**self).set_speed(speed)
+    }
+    fn auto_check_home(&self) -> Result<(), MotorError> {
+        (**self).auto_check_home()
+    }
+    fn get_position(&self) -> Result<(i32, i32), MotorError> {
+        (**self).get_position()
+    }
+}
+
 /// Physical Linux /dev/motor implementation using libc::ioctl
 pub struct LinuxMotorDevice {
     file: File,

@@ -44,6 +44,15 @@ pub trait GpioDevice: Send + Sync {
     fn get_value(&self, pin: u32) -> Result<u32, GpioError>;
 }
 
+impl<T: GpioDevice + ?Sized> GpioDevice for Arc<T> {
+    fn set_value(&self, pin: u32, val: u32) -> Result<(), GpioError> {
+        (**self).set_value(pin, val)
+    }
+    fn get_value(&self, pin: u32) -> Result<u32, GpioError> {
+        (**self).get_value(pin)
+    }
+}
+
 pub struct LinuxGpioDevice {
     file: File,
 }

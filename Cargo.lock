@@ -362,6 +362,7 @@ dependencies = [
  "escam-web",
  "hyper",
  "hyper-util",
+ "serde_json",
  "tokio",
  "tower",
  "tracing",

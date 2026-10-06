@@ -13,3 +13,4 @@ HANDOVER.md
 !.specops/grandfathered_debt.json
 target/
 .firmware_dump/
+.playwright-mcp/

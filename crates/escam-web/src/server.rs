@@ -40,8 +40,8 @@ mod tests {
 
     fn create_test_state() -> AppState {
         let config = CameraConfig::default();
-        let motor = MockMotorDevice::new();
-        let gpio = MockGpioDevice::new();
+        let motor: Arc<dyn escam_driver::MotorDevice> = Arc::new(MockMotorDevice::new());
+        let gpio: Arc<dyn escam_driver::GpioDevice> = Arc::new(MockGpioDevice::new());
         let ptz = Arc::new(PtzController::new(motor, config.clone()));
         let ircut = Arc::new(IrCutController::new(gpio));
         let status = Arc::new(Mutex::new(CameraStatus::default()));

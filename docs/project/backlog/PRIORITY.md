@@ -16,3 +16,4 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0012 (Complete)**: [`0012-snappy-web-spa-virtual-joystick`](complete/0012-snappy-web-spa-virtual-joystick.md)
 - **TASK-0013 (Complete)**: [`0013-startup-init-and-vendor-ejection`](complete/0013-startup-init-and-vendor-ejection.md)
 - **TASK-0014 (Complete)**: [`0014-hardware-memory-benchmarking-and-security`](complete/0014-hardware-memory-benchmarking-and-security.md)
+- **TASK-0015 (Complete)**: [`0015-wire-physical-ptz-and-ircut-to-web-frontdoor`](complete/0015-wire-physical-ptz-and-ircut-to-web-frontdoor.md)
