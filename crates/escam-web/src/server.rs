@@ -51,6 +51,7 @@ mod tests {
         let frame = Arc::new(tokio::sync::RwLock::new(
             crate::assets::LIVE_FRAME_JPEG.to_vec(),
         ));
+        let (video_broadcast, _) = tokio::sync::broadcast::channel(16);
 
         AppState {
             config,
@@ -58,6 +59,7 @@ mod tests {
             ptz,
             ircut,
             frame,
+            video_broadcast,
         }
     }
 

@@ -91,6 +91,61 @@ impl RtpPacketizer {
     }
 }
 
+/// Depacketizer for RFC 6184 H.264 RTP payloads into Annex-B NAL units.
+#[derive(Debug, Default)]
+pub struct RtpDepacketizer {
+    fu_buffer: Vec<u8>,
+}
+
+impl RtpDepacketizer {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Ingests an RTP packet payload (skipping 12-byte RTP header) and returns an Annex-B NAL unit if complete.
+    pub fn depacketize(&mut self, payload: &[u8]) -> Option<Vec<u8>> {
+        if payload.is_empty() {
+            return None;
+        }
+
+        let nalu_header = payload[0];
+        let nalu_type = nalu_header & 0x1F;
+
+        if nalu_type == 28 {
+            if payload.len() < 2 {
+                return None;
+            }
+            let fu_header = payload[1];
+            let start = (fu_header & 0x80) != 0;
+            let end = (fu_header & 0x40) != 0;
+            let actual_type = fu_header & 0x1F;
+            let nri = nalu_header & 0x60;
+
+            if start {
+                self.fu_buffer.clear();
+                self.fu_buffer.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+                self.fu_buffer.push(nri | actual_type);
+                self.fu_buffer.extend_from_slice(&payload[2..]);
+            } else if !self.fu_buffer.is_empty() {
+                self.fu_buffer.extend_from_slice(&payload[2..]);
+            }
+
+            if end && !self.fu_buffer.is_empty() {
+                let complete = std::mem::take(&mut self.fu_buffer);
+                return Some(complete);
+            }
+            None
+        } else if (1..=23).contains(&nalu_type) {
+            let mut complete = Vec::with_capacity(4 + payload.len());
+            complete.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+            complete.extend_from_slice(payload);
+            Some(complete)
+        } else {
+            None
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -124,5 +179,35 @@ mod tests {
         // End bit set on last packet
         assert_eq!(packets[2].payload[1] & 0x40, 0x40);
         assert!(packets[2].marker);
+    }
+
+    #[test]
+    fn test_depacketizer_roundtrip() {
+        let mut packetizer = RtpPacketizer::new(500);
+        let mut depacketizer = RtpDepacketizer::new();
+
+        // 1. Test single NALU (e.g. SPS)
+        let sps = vec![0x67, 0x42, 0x00, 0x1f];
+        let pkts = packetizer.packetize(&sps);
+        assert_eq!(pkts.len(), 1);
+        let depkt = depacketizer.depacketize(&pkts[0].payload).unwrap();
+        assert_eq!(&depkt[..4], &[0x00, 0x00, 0x00, 0x01]);
+        assert_eq!(&depkt[4..], &sps[..]);
+
+        // 2. Test FU-A fragmented NALU
+        let mut idr = vec![0x65];
+        idr.extend(vec![0x42; 1100]);
+        let pkts2 = packetizer.packetize(&idr);
+        assert!(pkts2.len() > 1);
+
+        let mut reconstructed = None;
+        for pkt in pkts2 {
+            if let Some(res) = depacketizer.depacketize(&pkt.payload) {
+                reconstructed = Some(res);
+            }
+        }
+        let full = reconstructed.expect("Failed to reconstruct fragmented NALU");
+        assert_eq!(&full[..4], &[0x00, 0x00, 0x00, 0x01]);
+        assert_eq!(&full[4..], &idr[..]);
     }
 }

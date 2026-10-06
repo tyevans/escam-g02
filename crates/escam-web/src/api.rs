@@ -21,6 +21,7 @@ pub struct AppState {
     pub ptz: Arc<PtzController<Arc<dyn MotorDevice>>>,
     pub ircut: Arc<IrCutController<Arc<dyn GpioDevice>>>,
     pub frame: Arc<tokio::sync::RwLock<Vec<u8>>>,
+    pub video_broadcast: tokio::sync::broadcast::Sender<Vec<u8>>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -72,19 +72,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("[escamd] Step 4: INDI server bind warning: {}", e),
     }
 
-    // 3. Build AppState with Live Frame Buffer
+    // 3. Build AppState with Live Frame Buffer & RTSP H.264 Ingestion
     let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
     let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
     let frame_writer = frame.clone();
 
-    // Background task to poll real camera frames from local DSP encoder at ~15 FPS
+    // Background task to poll real camera frames from local DSP encoder for snapshot
     tokio::spawn(async move {
         loop {
             if let Some(jpg) = fetch_camera_jpeg().await {
                 *frame_writer.write().await = jpg;
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(66)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         }
+    });
+
+    let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(64);
+    let rtsp_sender = video_broadcast.clone();
+    tokio::spawn(async move {
+        let client = escam_media::RtspClient::new("127.0.0.1:554", "11", rtsp_sender);
+        client.run_loop().await;
     });
 
     let app_state = AppState {
@@ -93,6 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ptz: ptz.clone(),
         ircut: ircut.clone(),
         frame,
+        video_broadcast,
     };
 
     let bind_addr = std::env::var("ESCAM_BIND").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
@@ -262,8 +270,38 @@ async fn handle_http_connection(
             );
             stream.write_all(resp.as_bytes()).await?;
 
+            let (mut read_half, mut write_half) = stream.into_split();
+            let mut video_rx = state.video_broadcast.subscribe();
+
+            let video_task = tokio::spawn(async move {
+                while let Ok(nal) = video_rx.recv().await {
+                    let mut hdr = [0u8; 10];
+                    let hdr_len = if nal.len() < 126 {
+                        hdr[0] = 0x82;
+                        hdr[1] = nal.len() as u8;
+                        2
+                    } else if nal.len() <= 65535 {
+                        hdr[0] = 0x82;
+                        hdr[1] = 126;
+                        hdr[2..4].copy_from_slice(&(nal.len() as u16).to_be_bytes());
+                        4
+                    } else {
+                        hdr[0] = 0x82;
+                        hdr[1] = 127;
+                        hdr[2..10].copy_from_slice(&(nal.len() as u64).to_be_bytes());
+                        10
+                    };
+                    if write_half.write_all(&hdr[..hdr_len]).await.is_err() {
+                        break;
+                    }
+                    if write_half.write_all(&nal).await.is_err() {
+                        break;
+                    }
+                }
+            });
+
             let mut ws_buf = [0u8; 1024];
-            while let Ok(n) = stream.read(&mut ws_buf).await {
+            while let Ok(n) = read_half.read(&mut ws_buf).await {
                 if n < 2 {
                     break;
                 }
@@ -307,6 +345,7 @@ async fn handle_http_connection(
                     }
                 }
             }
+            video_task.abort();
         }
     } else {
         let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";

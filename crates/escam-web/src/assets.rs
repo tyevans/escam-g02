@@ -243,7 +243,69 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       };
     }
     const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
-    ws.onmessage = (msg) => { console.log("Telemetry:", msg.data); };
+    ws.binaryType = 'arraybuffer';
+
+    let decoder = null;
+    let canvas = null;
+    let ctx = null;
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+
+    if (window.VideoDecoder) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'liveCanvas';
+      canvas.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0;border-radius:4px;';
+      const vp = document.querySelector('.viewport-card');
+      if (vp && liveImg) vp.insertBefore(canvas, liveImg);
+      ctx = canvas.getContext('2d');
+      decoder = new VideoDecoder({
+        output: (frame) => {
+          if (canvas.width !== frame.displayWidth || canvas.height !== frame.displayHeight) {
+            canvas.width = frame.displayWidth;
+            canvas.height = frame.displayHeight;
+            canvas.style.display = 'block';
+            if (liveImg) liveImg.style.display = 'none';
+          }
+          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+          frame.close();
+          frameCount++;
+          const now = performance.now();
+          if (now - lastFpsTime >= 1000) {
+            const fps = (frameCount * 1000 / (now - lastFpsTime)).toFixed(1);
+            const hudFps = document.getElementById('hudFps');
+            if (hudFps) hudFps.innerText = `${fps} FPS • 720p H.264`;
+            frameCount = 0;
+            lastFpsTime = now;
+          }
+        },
+        error: (e) => console.warn("VideoDecoder:", e)
+      });
+      decoder.configure({ codec: 'avc1.4d002a', optimizeForLatency: true });
+    }
+
+    ws.onmessage = (event) => {
+      if (event.data instanceof ArrayBuffer) {
+        if (!decoder || decoder.state !== 'configured') return;
+        const u8 = new Uint8Array(event.data);
+        let nalType = 0;
+        if (u8.length > 4 && u8[0] === 0 && u8[1] === 0 && u8[2] === 0 && u8[3] === 1) {
+          nalType = u8[4] & 0x1f;
+        }
+        const isKey = nalType === 5 || nalType === 7;
+        try {
+          decoder.decode(new EncodedVideoChunk({
+            type: isKey ? 'key' : 'delta',
+            timestamp: performance.now() * 1000,
+            data: event.data
+          }));
+        } catch (e) {}
+      } else {
+        try {
+          const msg = JSON.parse(event.data);
+          console.log("Telemetry:", msg);
+        } catch {}
+      }
+    };
 
     function toggleTheme() {
       const isFnaf = document.body.classList.toggle('theme-fnaf');
