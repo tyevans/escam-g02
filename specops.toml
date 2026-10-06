@@ -1,6 +1,6 @@
 [project]
 name = "escam-g02"
-repo = ""
+repo = "git@github.com:tyevans/escam-g02.git"
 docs_dir = "docs/project"
 site_output = "dist/site"
 

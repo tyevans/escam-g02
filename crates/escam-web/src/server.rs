@@ -8,20 +8,22 @@ use crate::api::{
 };
 use axum::routing::{get, post};
 use axum::Router;
-use tower_http::compression::CompressionLayer;
-use tower_http::cors::CorsLayer;
 
 pub fn build_router(state: AppState) -> Router {
-    Router::new()
+    eprintln!("[build_router] Initializing router...");
+    let router = Router::new()
         .route("/", get(index_handler))
         .route("/api/v1/status", get(status_handler))
         .route("/api/v1/ptz", post(ptz_handler))
         .route("/api/v1/ircut", post(ircut_handler))
         .route("/api/v1/snapshot", get(snapshot_handler))
-        .route("/api/v1/ws", get(ws_handler))
-        .layer(CompressionLayer::new())
-        .layer(CorsLayer::permissive())
-        .with_state(state)
+        .route("/api/v1/ws", get(ws_handler));
+    eprintln!("[build_router] Routes added.");
+
+    eprintln!("[build_router] Calling with_state...");
+    let router = router.with_state(state);
+    eprintln!("[build_router] Router successfully built.");
+    router
 }
 
 #[cfg(test)]

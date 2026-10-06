@@ -360,7 +360,10 @@ dependencies = [
  "escam-ptz",
  "escam-system",
  "escam-web",
+ "hyper",
+ "hyper-util",
  "tokio",
+ "tower",
  "tracing",
  "tracing-subscriber",
 ]
