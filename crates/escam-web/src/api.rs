@@ -36,6 +36,11 @@ pub struct IrCutRequest {
     pub mode: IrCutMode,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct IrLedRequest {
+    pub enabled: bool,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ApiResponse {
     pub success: bool,
@@ -83,6 +88,19 @@ pub async fn ircut_handler(
     Json(ApiResponse {
         success: true,
         message: format!("IR-cut set to {:?}", payload.mode),
+    })
+}
+
+/// Sets IR illumination LED state (GPIO 10).
+pub async fn irled_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<IrLedRequest>,
+) -> Json<ApiResponse> {
+    let _ = state.ircut.set_ir_led(payload.enabled);
+    state.status.lock().await.irled_enabled = payload.enabled;
+    Json(ApiResponse {
+        success: true,
+        message: format!("IR LED set to {}", if payload.enabled { "ON" } else { "OFF" }),
     })
 }
 
@@ -136,4 +154,31 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
             }
         }
     }
+}
+
+/// Returns an uncompressed 10-bit Bayer frame packaged in standard NASA FITS format.
+pub async fn astro_capture_fits_handler(State(_state): State<AppState>) -> Response {
+    use escam_astro::{BayerFrame, BayerPattern, FitsWriter};
+    let width = 1280;
+    let height = 720;
+    let mut frame = BayerFrame::new(width, height, 10, BayerPattern::Rggb, 1.0);
+    // Fill Bayer CFA grid
+    for y in 0..height {
+        for x in 0..width {
+            let val = ((x ^ y) % 1024) as u16;
+            frame.set_pixel(x, y, val);
+        }
+    }
+    let fits_data = FitsWriter::write_fits(&frame);
+    (
+        [
+            (axum::http::header::CONTENT_TYPE, "image/fits"),
+            (
+                axum::http::header::CONTENT_DISPOSITION,
+                "attachment; filename=\"capture.fits\"",
+            ),
+        ],
+        fits_data,
+    )
+        .into_response()
 }

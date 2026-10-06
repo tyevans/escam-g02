@@ -7,6 +7,6 @@ pub mod bayer;
 pub mod fits;
 pub mod indi;
 
-pub use bayer::BayerFrame;
+pub use bayer::{BayerFrame, BayerPattern};
 pub use fits::FitsWriter;
 pub use indi::IndiServer;

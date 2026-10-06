@@ -10,6 +10,7 @@ escam-core = { path = "../escam-core" }
 escam-driver = { path = "../escam-driver" }
 escam-ptz = { path = "../escam-ptz" }
 escam-media = { path = "../escam-media" }
+escam-astro = { path = "../escam-astro" }
 axum = { version = "0.8", features = ["ws"] }
 tokio = { version = "1.42", features = ["sync", "time", "net", "rt"] }
 tower = { version = "0.5", features = ["util"] }

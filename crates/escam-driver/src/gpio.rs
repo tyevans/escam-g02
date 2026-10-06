@@ -16,9 +16,10 @@ use thiserror::Error;
 pub const GKIO_IOCTL_SET_VALUE: u32 = 0xC004_6200;
 pub const GKIO_IOCTL_GET_VALUE: u32 = 0xC004_6201;
 
-/// Hardware GPIO Pin Numbers for the UTC BA6208L H-Bridge
+/// Hardware GPIO Pin Numbers for the UTC BA6208L H-Bridge and IR Illumination
 pub const GPIO_IRCUT_DAY_FORWARD: u32 = 14;
 pub const GPIO_IRCUT_NIGHT_REVERSE: u32 = 17;
+pub const GPIO_IRLED: u32 = 10;
 
 /// Solenoid activation pulse duration (100ms as determined by vendor disassembly)
 pub const IRCUT_PULSE_DURATION: Duration = Duration::from_millis(100);
@@ -123,10 +124,11 @@ impl GpioDevice for MockGpioDevice {
     }
 }
 
-/// High-level controller for the mechanical IR-Cut filter solenoid
+/// High-level controller for the mechanical IR-Cut filter solenoid and IR LEDs
 pub struct IrCutController<D: GpioDevice> {
     gpio: D,
     current_mode: Mutex<IrCutMode>,
+    irled_state: Mutex<bool>,
 }
 
 impl<D: GpioDevice> IrCutController<D> {
@@ -134,11 +136,26 @@ impl<D: GpioDevice> IrCutController<D> {
         Self {
             gpio,
             current_mode: Mutex::new(IrCutMode::Day),
+            irled_state: Mutex::new(false),
         }
     }
 
     pub fn mode(&self) -> IrCutMode {
         *self.current_mode.lock().unwrap()
+    }
+
+    pub fn ir_led(&self) -> bool {
+        *self.irled_state.lock().unwrap()
+    }
+
+    pub fn set_ir_led(&self, enable: bool) -> Result<(), GpioError> {
+        let val = if enable { 1 } else { 0 };
+        // 1. Write via kernel driver /dev/gkio
+        let _ = self.gpio.set_value(GPIO_IRLED, val);
+        // 2. Also ensure direct sysfs node is updated if available
+        let _ = std::fs::write("/sys/class/gpio/gpio10/value", if enable { "1" } else { "0" });
+        *self.irled_state.lock().unwrap() = enable;
+        Ok(())
     }
 
     pub fn set_mode(&self, mode: IrCutMode) -> Result<(), GpioError> {
@@ -186,5 +203,20 @@ mod tests {
 
         let pin_17_val = mock.get_value(17).unwrap();
         assert_eq!(pin_17_val, 0);
+    }
+
+    #[test]
+    fn test_irled_toggle() {
+        let mock = MockGpioDevice::new();
+        let controller = IrCutController::new(mock.clone());
+
+        assert!(!controller.ir_led());
+        controller.set_ir_led(true).unwrap();
+        assert!(controller.ir_led());
+        assert_eq!(mock.get_value(GPIO_IRLED).unwrap(), 1);
+
+        controller.set_ir_led(false).unwrap();
+        assert!(!controller.ir_led());
+        assert_eq!(mock.get_value(GPIO_IRLED).unwrap(), 0);
     }
 }

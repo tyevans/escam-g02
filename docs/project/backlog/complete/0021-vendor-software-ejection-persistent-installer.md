@@ -1,7 +1,7 @@
 ---
 id: '0021'
 title: Vendor Daemon Ejection and In-Memory Persistent Boot Installer
-status: Refined
+status: Complete
 governing_adrs:
 - ADR-0010
 - ADR-0019

@@ -101,6 +101,8 @@ pub struct CameraStatus {
     pub current_pan_deg: f32,
     pub current_tilt_deg: f32,
     pub ircut_mode: IrCutMode,
+    #[serde(default)]
+    pub irled_enabled: bool,
     pub streaming_active: bool,
     pub peer_connections: usize,
 }
@@ -113,6 +115,7 @@ impl Default for CameraStatus {
             current_pan_deg: 177.5,
             current_tilt_deg: 40.0,
             ircut_mode: IrCutMode::Day,
+            irled_enabled: false,
             streaming_active: false,
             peer_connections: 0,
         }

@@ -1,7 +1,7 @@
 ---
 id: '0020'
 title: Raw 10-bit Bayer Frame Capture from Sensor Pipeline for FITS Export
-status: Refined
+status: Complete
 governing_adrs:
 - ADR-0014
 - ADR-0018

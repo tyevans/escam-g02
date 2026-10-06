@@ -75,67 +75,24 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
     .rec-dot { color: #ff3b30; text-shadow: 0 0 8px #ff3b30; animation: blink 1s steps(1) infinite; }
     @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.1; } }
     main { width: 100%; max-width: 920px; display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .viewport-card {
-      position: relative; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9;
-      border: 2px solid var(--brass-border); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
-    }
-    body.theme-fnaf .viewport-card {
-      border: 8px solid #232a22; outline: 2px dashed #3a4738; outline-offset: -5px;
-      box-shadow: 0 0 0 3px #111610, 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(57, 255, 20, 0.2);
-    }
+    .viewport-card { position: relative; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; border: 2px solid var(--brass-border); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85); }
+    body.theme-fnaf .viewport-card { border: 8px solid #232a22; outline: 2px dashed #3a4738; outline-offset: -5px; box-shadow: 0 0 0 3px #111610, 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(57, 255, 20, 0.2); }
     video { width: 100%; height: 100%; object-fit: contain; }
     .crt-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
-    body.theme-fnaf .crt-overlay {
-      opacity: 1;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
-                  radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.85) 100%);
-      background-size: 100% 3px, 100% 100%;
-      animation: crtFlicker 0.15s infinite;
-    }
+    body.theme-fnaf .crt-overlay { opacity: 1; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.85) 100%); background-size: 100% 3px, 100% 100%; animation: crtFlicker 0.15s infinite; }
     @keyframes crtFlicker { 0% { opacity: 0.92; } 50% { opacity: 0.99; } 100% { opacity: 0.94; } }
-    .hud-overlay {
-      position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between;
-      pointer-events: none; font-family: 'Courier New', monospace; font-size: 0.8rem; letter-spacing: 0.5px;
-      color: var(--ochre-bright); text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 8px rgba(57,255,20,0.4);
-    }
+    .hud-overlay { position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between; pointer-events: none; font-family: 'Courier New', monospace; font-size: 0.8rem; letter-spacing: 0.5px; color: var(--ochre-bright); text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 8px rgba(57,255,20,0.4); }
     .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 600px) { .controls-grid { grid-template-columns: 1fr; } }
-    .card {
-      background: var(--card-bg); border: 1px solid var(--brass-border); border-radius: 8px;
-      padding: 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
-    }
-    .card h3 {
-      font-size: 0.82rem; margin-bottom: 12px; color: var(--ochre-rich); text-transform: uppercase;
-      letter-spacing: 1.5px; border-bottom: 1px solid rgba(198, 139, 57, 0.2); padding-bottom: 6px;
-    }
+    .card { background: var(--card-bg); border: 1px solid var(--brass-border); border-radius: 8px; padding: 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55); }
+    .card h3 { font-size: 0.82rem; margin-bottom: 12px; color: var(--ochre-rich); text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid rgba(198, 139, 57, 0.2); padding-bottom: 6px; }
     body.theme-fnaf .card h3 { border-bottom-color: rgba(57, 255, 20, 0.2); }
-    .joystick-container {
-      position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 50%;
-      background: radial-gradient(circle, #15221c 0%, #0d1411 65%, #1f2d25 100%);
-      border: 2px solid var(--patina-dark); box-shadow: inset 0 0 24px rgba(0,0,0,0.9), 0 0 16px rgba(79,163,148,0.2);
-      display: flex; align-items: center; justify-content: center; touch-action: none;
-    }
-    .joystick-container::before {
-      content: ''; position: absolute; width: 110px; height: 110px; border-radius: 50%;
-      border: 1px dashed rgba(198, 139, 57, 0.25); pointer-events: none;
-    }
-    body.theme-fnaf .joystick-container {
-      background: radial-gradient(circle, #08170c 0%, #030a05 75%),
-                  linear-gradient(0deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%),
-                  linear-gradient(90deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%);
-      border-color: #1f4d24; box-shadow: inset 0 0 24px rgba(0,0,0,0.95), 0 0 16px rgba(57,255,20,0.25);
-    }
+    .joystick-container { position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle, #15221c 0%, #0d1411 65%, #1f2d25 100%); border: 2px solid var(--patina-dark); box-shadow: inset 0 0 24px rgba(0,0,0,0.9), 0 0 16px rgba(79,163,148,0.2); display: flex; align-items: center; justify-content: center; touch-action: none; }
+    .joystick-container::before { content: ''; position: absolute; width: 110px; height: 110px; border-radius: 50%; border: 1px dashed rgba(198, 139, 57, 0.25); pointer-events: none; }
+    body.theme-fnaf .joystick-container { background: radial-gradient(circle, #08170c 0%, #030a05 75%), linear-gradient(0deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%), linear-gradient(90deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%); border-color: #1f4d24; box-shadow: inset 0 0 24px rgba(0,0,0,0.95), 0 0 16px rgba(57,255,20,0.25); }
     body.theme-fnaf .joystick-container::before { border-color: rgba(57, 255, 20, 0.35); }
-    .joystick-handle {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #fff6e0 0%, #d49b43 18%, #8c4327 42%, #2c594d 72%, #0e1613 100%);
-      border: 2px solid var(--ochre-rich); box-shadow: 0 6px 18px rgba(0,0,0,0.85), 0 0 16px rgba(212,155,67,0.5);
-      position: absolute; cursor: grab; transition: transform 0.05s ease-out;
-    }
-    body.theme-fnaf .joystick-handle {
-      background: radial-gradient(circle at 35% 35%, #66ff66 0%, #208020 40%, #0a260a 80%);
-      border: 2px solid #39ff14; box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 18px rgba(57, 255, 20, 0.6);
-    }
+    .joystick-handle { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6e0 0%, #d49b43 18%, #8c4327 42%, #2c594d 72%, #0e1613 100%); border: 2px solid var(--ochre-rich); box-shadow: 0 6px 18px rgba(0,0,0,0.85), 0 0 16px rgba(212,155,67,0.5); position: absolute; cursor: grab; transition: transform 0.05s ease-out; }
+    body.theme-fnaf .joystick-handle { background: radial-gradient(circle at 35% 35%, #66ff66 0%, #208020 40%, #0a260a 80%); border: 2px solid #39ff14; box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 18px rgba(57, 255, 20, 0.6); }
     .joystick-handle:active { cursor: grabbing; }
     .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
     button {
@@ -214,7 +171,10 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
             <span class="norm-only">Day (IR-Cut ON)</span><span class="fnaf-only">DAYTIME CAM</span>
           </button>
           <button id="btnNight" onclick="setIrCut('Night')">
-            <span class="norm-only">Night / Astro (Hα)</span><span class="fnaf-only">NIGHT VISION</span>
+            <span class="norm-only">Night / Astro</span><span class="fnaf-only">NIGHT VISION</span>
+          </button>
+          <button id="btnIrLed" onclick="toggleIrLed()">
+            <span class="norm-only">IR LED: OFF</span><span class="fnaf-only">IR ILLUM: OFF</span>
           </button>
         </div>
         <h3 style="margin-top: 14px;">
@@ -230,6 +190,9 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
           </button>
           <button onclick="triggerSnapshot()">
             <span class="norm-only">Snapshot</span><span class="fnaf-only">SNAP EVIDENCE</span>
+          </button>
+          <button onclick="downloadFits()">
+            <span class="norm-only">FITS Raw</span><span class="fnaf-only">RAW FITS CAP</span>
           </button>
         </div>
       </div>
@@ -323,11 +286,24 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       document.getElementById('btnNight').classList.toggle('active', mode === 'Night');
     }
 
+    let irLedState = false;
+    function toggleIrLed() {
+      irLedState = !irLedState;
+      fetch('/api/v1/irled', { method: 'POST', body: JSON.stringify({ enabled: irLedState }), headers: { 'Content-Type': 'application/json' } });
+      const btn = document.getElementById('btnIrLed');
+      btn.classList.toggle('active', irLedState);
+      const norm = btn.querySelector('.norm-only');
+      const fnaf = btn.querySelector('.fnaf-only');
+      if (norm) norm.innerText = irLedState ? 'IR LED: ON' : 'IR LED: OFF';
+      if (fnaf) fnaf.innerText = irLedState ? 'IR ILLUM: ON' : 'IR ILLUM: OFF';
+    }
+
     function sendPtz(act) {
       fetch('/api/v1/ptz', { method: 'POST', body: JSON.stringify({ action: act }), headers: { 'Content-Type': 'application/json' } });
     }
 
     function triggerSnapshot() { window.open('/api/v1/snapshot', '_blank'); }
+    function downloadFits() { window.open('/api/v1/astro/capture.fits', '_blank'); }
 
     // Virtual Joystick Controller with HTTP Fallback & Throttling
     const zone = document.getElementById('joystickZone');

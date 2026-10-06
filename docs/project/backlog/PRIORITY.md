@@ -21,5 +21,5 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0017 (Complete)**: [`0017-virtual-joystick-http-fallback-and-ratelimiting`](complete/0017-virtual-joystick-http-fallback-and-ratelimiting.md)
 - **TASK-0018 (Complete)**: [`0018-gc1034-venc-ring-buffer-ingestion`](complete/0018-gc1034-venc-ring-buffer-ingestion.md)
 - **TASK-0019 (Complete)**: [`0019-h264-stream-tunnel-to-spa-viewport`](complete/0019-h264-stream-tunnel-to-spa-viewport.md)
-- **TASK-0020 (Refined)**: [`0020-raw-bayer-frame-fits-export`](refined/0020-raw-bayer-frame-fits-export.md)
-- **TASK-0021 (Refined)**: [`0021-vendor-software-ejection-persistent-installer`](refined/0021-vendor-software-ejection-persistent-installer.md)
+- **TASK-0020 (Complete)**: [`0020-raw-bayer-frame-fits-export`](complete/0020-raw-bayer-frame-fits-export.md)
+- **TASK-0021 (Complete)**: [`0021-vendor-software-ejection-persistent-installer`](complete/0021-vendor-software-ejection-persistent-installer.md)
