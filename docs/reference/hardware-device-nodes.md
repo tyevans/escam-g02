@@ -51,12 +51,15 @@ struct MotorSpeed {
 | `0xC0046200` | `GKIO_IOCTL_SET_VALUE` | `struct GpioVal` (8 bytes) | Sets GPIO output value |
 | `0xC0046201` | `GKIO_IOCTL_GET_VALUE` | `struct GpioVal` (8 bytes) | Reads GPIO input value |
 
-### Solenoid Pin Mapping
+### Solenoid & Illuminator Pin Mapping
 
+- **GPIO 10**: Physical IR LED illuminator (1 = ON, 0 = OFF)
 - **GPIO 14**: Forward drive (Day mode / IR-Cut ON)
 - **GPIO 17**: Reverse drive (Night / Astro H-alpha mode / IR-Cut OFF)
 
-Actuation protocol: Assert high (1) for 100ms, then assert low (0) to eliminate static current.
+Actuation protocol:
+- **IR-Cut Filter**: Assert high (1) for 100ms, then assert low (0) to eliminate static coil heating.
+- **IR LED Illuminator**: Continuous high (1) for active night illumination, or low (0) for pure starlight/astrophotography mode.
 
 ---
 
