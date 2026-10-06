@@ -117,6 +117,7 @@ impl RtspClient {
     async fn stream_session(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("[rtsp_client] Connecting to RTSP at {}...", self.rtsp_addr);
         let mut sock = TcpStream::connect(&self.rtsp_addr).await?;
+        let _ = sock.set_nodelay(true);
         let base_uri = format!("rtsp://{}/{}", self.rtsp_addr, self.stream_path);
 
         // 1. Initial DESCRIBE to fetch 401 challenge (realm and nonce)

@@ -21,19 +21,11 @@ use tracing::info;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("==================================================");
-    println!("🚀 Starting escamd • ESCAM G02 Pure Rust Firmware");
-    println!("Target: Goke Microelectronics GK7102C (ARMv6)");
-    println!("Zero Cloud Telemetry • Memory-Safe • Instant Boot");
+    println!("🚀 Starting escamd • ESCAM G02 Pure Rust Firmware (GK7102C)");
     println!("==================================================");
-
-    eprintln!("[escamd] Step 1: Initializing tracing subscriber...");
     tracing_subscriber::fmt::init();
-    eprintln!("[escamd] Step 1 done.");
-
-    eprintln!("[escamd] Step 2: Setting up default configuration & status...");
     let config = CameraConfig::default();
     let status = Arc::new(Mutex::new(CameraStatus::default()));
-    eprintln!("[escamd] Step 2 done.");
 
     // 1. Initialize PTZ and Hardware Devices
     eprintln!("[escamd] Step 3: Initializing mock/hardware devices...");
@@ -76,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
     let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
 
-    let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(64);
+    let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(16);
     let rtsp_sender = video_broadcast.clone();
     tokio::spawn(async move {
         let client = escam_media::RtspClient::new("127.0.0.1:554", "11", rtsp_sender);
@@ -273,11 +265,17 @@ async fn handle_http_connection(
             );
             stream.write_all(resp.as_bytes()).await?;
 
+            let _ = stream.set_nodelay(true);
             let (mut read_half, mut write_half) = stream.into_split();
             let mut video_rx = state.video_broadcast.subscribe();
 
             let video_task = tokio::spawn(async move {
-                while let Ok(nal) = video_rx.recv().await {
+                loop {
+                    let nal = match video_rx.recv().await {
+                        Ok(n) => n,
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                        Err(_) => break,
+                    };
                     let mut hdr = [0u8; 10];
                     let hdr_len = if nal.len() < 126 {
                         hdr[0] = 0x82;

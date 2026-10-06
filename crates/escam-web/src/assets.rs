@@ -249,6 +249,8 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         mode: 'video',
         flv: false,
         fps: 20,
+        flushingTime: 0,
+        maxDelay: 50,
         clearBuffer: true,
         debug: false
       });
@@ -258,6 +260,20 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         liveImg.style.display = 'none';
       }
       liveVideo.play().catch(() => {});
+
+      setInterval(() => {
+        if (liveVideo.buffered && liveVideo.buffered.length > 0 && !liveVideo.seeking) {
+          const end = liveVideo.buffered.end(liveVideo.buffered.length - 1);
+          const drift = end - liveVideo.currentTime;
+          if (drift > 0.08) {
+            liveVideo.currentTime = end - 0.01;
+          }
+          const hudLatency = document.getElementById('hudLatency');
+          if (hudLatency) {
+            hudLatency.innerText = `${Math.max(15, Math.round(drift * 1000))}ms Latency`;
+          }
+        }
+      }, 60);
     }
 
     const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
