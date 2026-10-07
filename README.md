@@ -164,6 +164,7 @@ uv run spec-ops health
 - [ADR-0019: Native WebSockets Low-Latency Video Pipeline](docs/project/adrs/accepted/adr-0019-native-websockets-low-latency-video-pipeline.md)
 - [ADR-0020: Zero-Vendor Hardware Video Encoding Architecture](docs/project/adrs/accepted/adr-0020-zero-vendor-hardware-video-encoding-pipeline.md)
 - [Hardware Reverse Engineering Reference](docs/reference/hardware_reverse_engineering_reference.md)
+- [Compatible Hardware Candidates & Board Ecosystem](docs/reference/compatible-hardware-candidates.md)
 - [Astrophotography Optical Calculations](ASTRO_SPECS.md)
 
 ---

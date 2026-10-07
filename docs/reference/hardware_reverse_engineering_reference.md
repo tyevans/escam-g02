@@ -255,5 +255,6 @@ The long-term objective of this reverse-engineering effort is to replace the blo
 
 ## 8. Related Documentation
 
+* **[`compatible-hardware-candidates.md`](./compatible-hardware-candidates.md):** Complete guide to candidate sibling devices, YuanTe board provenance, and purchasing guide for acquiring compatible Goke GK7102 hardware.
 * **[`ASTRO_SPECS.md`](./ASTRO_SPECS.md):** Detailed optical calculations, sensor geometry (SC1135 vs GC1034), telescope M12-to-1.25" adaptation, and astrophotography / planetary imaging use cases.
 * **[`escam.py`](./escam.py):** Python CLI utility for PTZ motor driving, snapshots, and RTSP stream testing over LAN.
