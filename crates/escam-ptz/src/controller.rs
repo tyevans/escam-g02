@@ -124,6 +124,18 @@ impl<M: MotorDevice + 'static> PtzController<M> {
         Ok(())
     }
 
+    /// Slew mount directly to target pan (Azimuth) and tilt (Altitude) coordinates.
+    pub async fn slew_to(&self, pan_deg: f32, tilt_deg: f32) -> Result<(), PtzError> {
+        self.set_position(pan_deg, tilt_deg).await
+    }
+
+    /// Center mount to home park position.
+    pub async fn home(&self) -> Result<(), PtzError> {
+        let center_pan = (self.config.pan_min_deg + self.config.pan_max_deg) / 2.0;
+        let center_tilt = (self.config.tilt_min_deg + self.config.tilt_max_deg) / 2.0;
+        self.set_position(center_pan, center_tilt).await
+    }
+
     /// Drives continuous motion using virtual joystick input (x, y) where x, y in [-1.0, 1.0].
     /// Applies deadband filtering, soft limits, state deduplication, and interleaved diagonal motion.
     pub async fn drive_joystick(&self, x: f32, y: f32) -> Result<(), PtzError> {

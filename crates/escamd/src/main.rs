@@ -58,9 +58,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ircut = Arc::new(IrCutController::new(gpio.clone()));
     eprintln!("[escamd] Step 3 done.");
 
-    // 2. Launch Embedded INDI Astronomy Protocol Server
-    eprintln!("[escamd] Step 4: Initializing INDI astronomy server on port {}...", config.indi_port);
-    let indi_server = IndiServer::new(config.indi_port);
+    // 2. Launch Embedded INDI Astronomy Protocol Server & Mount Driver
+    eprintln!("[escamd] Step 4: Initializing INDI astronomy server & mount on port {}...", config.indi_port);
+    let (indi_mount_tx, mut indi_mount_rx) = tokio::sync::mpsc::unbounded_channel();
+    let ptz_for_indi = ptz.clone();
+    tokio::spawn(async move {
+        while let Some(action) = indi_mount_rx.recv().await {
+            match action {
+                escam_astro::IndiMountAction::Move(dir) => {
+                    let (x, y) = match dir {
+                        escam_astro::MountDirection::North => (0.0, 1.0),
+                        escam_astro::MountDirection::South => (0.0, -1.0),
+                        escam_astro::MountDirection::West => (-1.0, 0.0),
+                        escam_astro::MountDirection::East => (1.0, 0.0),
+                    };
+                    let _ = ptz_for_indi.drive_joystick(x, y).await;
+                }
+                escam_astro::IndiMountAction::Stop => {
+                    let _ = ptz_for_indi.stop().await;
+                }
+                escam_astro::IndiMountAction::Park => {
+                    let _ = ptz_for_indi.home().await;
+                }
+                escam_astro::IndiMountAction::SetCoords { az, alt } => {
+                    let _ = ptz_for_indi.slew_to(az, alt).await;
+                }
+                escam_astro::IndiMountAction::SetTracking(_enabled) => {}
+            }
+        }
+    });
+
+    let indi_server = IndiServer::with_mount(config.indi_port, indi_mount_tx);
     match indi_server.run().await {
         Ok(_) => eprintln!("[escamd] Step 4: INDI server bound successfully."),
         Err(e) => eprintln!("[escamd] Step 4: INDI server bind warning: {}", e),

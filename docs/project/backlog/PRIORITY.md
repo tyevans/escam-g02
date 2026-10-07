@@ -27,3 +27,4 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0023 (Complete)**: [`0023-aggressive-binary-size-optimization-and-lto`](complete/0023-aggressive-binary-size-optimization-and-lto.md)
 - **TASK-0024 (Complete)**: [`0024-celestial-sidereal-rate-tracking-engine`](complete/0024-celestial-sidereal-rate-tracking-engine.md)
 - **TASK-0025 (Complete)**: [`0025-multi-frame-integration-and-live-stacking`](complete/0025-multi-frame-integration-and-live-stacking.md)
+- **TASK-0026 (Complete)**: [`0026-embedded-indi-telescope-mount-driver`](complete/0026-embedded-indi-telescope-mount-driver.md)

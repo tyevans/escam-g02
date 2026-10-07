@@ -10,5 +10,5 @@ pub mod stacker;
 
 pub use bayer::{BayerFrame, BayerPattern};
 pub use fits::FitsWriter;
-pub use indi::IndiServer;
+pub use indi::{IndiMountAction, IndiServer, MountDirection};
 pub use stacker::{BayerStacker, StackerError, StackingMode};
