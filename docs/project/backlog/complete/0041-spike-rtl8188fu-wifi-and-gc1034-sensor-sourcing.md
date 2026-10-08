@@ -1,18 +1,18 @@
 ---
 id: '0041'
 title: 'Spike: Sourcing Open-Source RTL8188FTV Wi-Fi and GC1034 Sensor Drivers'
-status: Refined
+status: Complete
 dependencies:
-  - TASK-0040
+- TASK-0040
 governing_adrs:
-  - ADR-0026
+- ADR-0026
 governing_prds:
-  - PRD-0009
+- PRD-0009
 governing_stories:
-  - US-0033
+- US-0033
 target_bc: driver
 mutation_scope:
-  - crates/escam-driver/src/sensor.rs
+- crates/escam-driver/src/sensor.rs
 ---
 
 # TASK-0041: Spike: Sourcing Open-Source RTL8188FTV Wi-Fi and GC1034 Sensor Drivers

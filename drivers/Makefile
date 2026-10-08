@@ -4,6 +4,7 @@
 # ==============================================================================
 
 obj-m += escam_motor.o
+obj-m += gc1034_sensor.o
 
 KDIR ?= /lib/modules/$(shell uname -r)/build
 CROSS_COMPILE ?= arm-linux-musleabi-
