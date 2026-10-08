@@ -15,3 +15,5 @@ target/
 .firmware_dump/
 .playwright-mcp/
 .agents/last-docs-run
+*.downloaded
+*.patched

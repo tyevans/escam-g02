@@ -47,4 +47,10 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0043 (Complete)**: [`0043-persistent-in-vivo-integration-escam-motor-driver`](complete/0043-persistent-in-vivo-integration-escam-motor-driver.md)
 - **TASK-0044 (Complete)**: [`0044-compile-and-verify-rtl8188fu-wifi-driver`](complete/0044-compile-and-verify-rtl8188fu-wifi-driver.md)
 - **TASK-0045 (Complete)**: [`0045-rootfs-flashing-script-and-safety-automation`](complete/0045-rootfs-flashing-script-and-safety-automation.md)
+- **TASK-0046 (Complete)**: [`0046-cold-boot-persistent-motor-integration`](complete/0046-cold-boot-persistent-motor-integration.md)
+- **TASK-0047 (Complete)**: [`0047-in-vivo-rtl8188fu-wifi-testing`](complete/0047-in-vivo-rtl8188fu-wifi-testing.md)
+- **TASK-0048 (Complete)**: [`0048-compile-and-verify-gc1034-sensor-driver`](complete/0048-compile-and-verify-gc1034-sensor-driver.md)
+- **TASK-0049 (Refined)**: [`0049-zero-vendor-mmz-vpu-frame-buffer-ingestion`](refined/0049-zero-vendor-mmz-vpu-frame-buffer-ingestion.md)
+- **TASK-0050 (Refined)**: [`0050-rootfs-flashing-safety-gates`](refined/0050-rootfs-flashing-safety-gates.md)
+
 

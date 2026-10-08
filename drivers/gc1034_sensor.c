@@ -157,14 +157,15 @@ static int gc1034_probe(struct i2c_client *client, const struct i2c_device_id *i
     }
 
     sensor->sd.ctrl_handler = &sensor->ctrl_handler;
-    return v4l2_async_register_subdev(&sensor->sd);
+    v4l2_info(&sensor->sd, "GC1034 subdevice probed successfully\n");
+    return 0;
 }
 
 static int gc1034_remove(struct i2c_client *client) {
     struct v4l2_subdev *sd = i2c_get_clientdata(client);
     struct gc1034_dev *sensor = to_gc1034(sd);
 
-    v4l2_async_unregister_subdev(&sensor->sd);
+    v4l2_device_unregister_subdev(&sensor->sd);
     v4l2_ctrl_handler_free(&sensor->ctrl_handler);
     mutex_destroy(&sensor->lock);
     return 0;
