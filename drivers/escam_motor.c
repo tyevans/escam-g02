@@ -133,8 +133,18 @@ static long motor_ioctl(struct file *file, unsigned int cmd, unsigned long arg) 
     }
 }
 
+static int motor_open(struct inode *inode, struct file *file) {
+    return 0;
+}
+
+static int motor_release(struct inode *inode, struct file *file) {
+    return 0;
+}
+
 static const struct file_operations motor_fops = {
     .owner = THIS_MODULE,
+    .open = motor_open,
+    .release = motor_release,
     .unlocked_ioctl = motor_ioctl,
 };
 
@@ -163,10 +173,23 @@ static long gkio_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {
     }
 }
 
+static int gkio_open(struct inode *inode, struct file *file) {
+    return 0;
+}
+
+static int gkio_release(struct inode *inode, struct file *file) {
+    return 0;
+}
+
 static const struct file_operations gkio_fops = {
     .owner = THIS_MODULE,
+    .open = gkio_open,
+    .release = gkio_release,
     .unlocked_ioctl = gkio_ioctl,
 };
+
+#define MOTOR_MAJOR 243
+#define GKIO_MAJOR  242
 
 static int __init escam_motor_init(void) {
     int i;
@@ -187,19 +210,34 @@ static int __init escam_motor_init(void) {
     gpio_request(GPIO_IRLED, "irled");
     gpio_direction_output(GPIO_IRLED, 0);
 
-    alloc_chrdev_region(&motor_dev_t, 0, 1, MOTOR_DEV_NAME);
+    motor_dev_t = MKDEV(MOTOR_MAJOR, 0);
+    if (register_chrdev_region(motor_dev_t, 1, MOTOR_DEV_NAME) < 0) {
+        if (alloc_chrdev_region(&motor_dev_t, 0, 1, MOTOR_DEV_NAME) < 0) {
+            pr_err("escam_motor: Failed to allocate motor chrdev\n");
+            return -ENODEV;
+        }
+    }
     cdev_init(&motor_cdev, &motor_fops);
+    motor_cdev.owner = THIS_MODULE;
     cdev_add(&motor_cdev, motor_dev_t, 1);
     motor_class = class_create(THIS_MODULE, MOTOR_DEV_NAME);
     device_create(motor_class, NULL, motor_dev_t, NULL, MOTOR_DEV_NAME);
 
-    alloc_chrdev_region(&gkio_dev_t, 0, 1, GKIO_DEV_NAME);
+    gkio_dev_t = MKDEV(GKIO_MAJOR, 0);
+    if (register_chrdev_region(gkio_dev_t, 1, GKIO_DEV_NAME) < 0) {
+        if (alloc_chrdev_region(&gkio_dev_t, 0, 1, GKIO_DEV_NAME) < 0) {
+            pr_err("escam_motor: Failed to allocate gkio chrdev\n");
+            return -ENODEV;
+        }
+    }
     cdev_init(&gkio_cdev, &gkio_fops);
+    gkio_cdev.owner = THIS_MODULE;
     cdev_add(&gkio_cdev, gkio_dev_t, 1);
     gkio_class = class_create(THIS_MODULE, GKIO_DEV_NAME);
     device_create(gkio_class, NULL, gkio_dev_t, NULL, GKIO_DEV_NAME);
 
-    pr_info("escam_motor: Open-source motor and gkio driver registered\n");
+    pr_info("escam_motor: Registered motor (major %d) and gkio (major %d)\n",
+            MAJOR(motor_dev_t), MAJOR(gkio_dev_t));
     return 0;
 }
 

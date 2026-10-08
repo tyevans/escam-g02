@@ -44,3 +44,7 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0040 (Complete)**: [`0040-spike-open-source-gpio-and-ptz-motor-driver`](complete/0040-spike-open-source-gpio-and-ptz-motor-driver.md)
 - **TASK-0041 (Complete)**: [`0041-spike-rtl8188fu-wifi-and-gc1034-sensor-sourcing`](complete/0041-spike-rtl8188fu-wifi-and-gc1034-sensor-sourcing.md)
 - **TASK-0042 (Complete)**: [`0042-spike-gk7102-vpu-isp-and-mainline-kernel-feasibility`](complete/0042-spike-gk7102-vpu-isp-and-mainline-kernel-feasibility.md)
+- **TASK-0043 (Complete)**: [`0043-persistent-in-vivo-integration-escam-motor-driver`](complete/0043-persistent-in-vivo-integration-escam-motor-driver.md)
+- **TASK-0044 (Complete)**: [`0044-compile-and-verify-rtl8188fu-wifi-driver`](complete/0044-compile-and-verify-rtl8188fu-wifi-driver.md)
+- **TASK-0045 (Complete)**: [`0045-rootfs-flashing-script-and-safety-automation`](complete/0045-rootfs-flashing-script-and-safety-automation.md)
+

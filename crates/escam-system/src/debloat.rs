@@ -109,8 +109,12 @@ insmod /mnt/mtd/ipc/modules/hal.ko 2>/dev/null
 insmod /mnt/mtd/ipc/modules/media.ko 2>/dev/null
 insmod /mnt/mtd/ipc/modules/sensor.ko 2>/dev/null
 insmod /mnt/mtd/ipc/modules/gc1034_ex.ko 2>/dev/null
-insmod /mnt/mtd/ipc/modules/motor.ko 2>/dev/null
-insmod /mnt/mtd/ipc/modules/gkio.ko 2>/dev/null
+if [ -f /mnt/mtd/ipc/conf/escam_motor.ko ]; then
+    insmod /mnt/mtd/ipc/conf/escam_motor.ko 2>/dev/null
+else
+    insmod /mnt/mtd/ipc/modules/motor.ko 2>/dev/null
+    insmod /mnt/mtd/ipc/modules/gkio.ko 2>/dev/null
+fi
 
 echo "[init] Setting up tmpfs and decompressing escamd..."
 mkdir -p /mnt/mtd/ipc/tmpfs

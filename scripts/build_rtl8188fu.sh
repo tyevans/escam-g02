@@ -12,8 +12,8 @@ set -euo pipefail
 
 BUILD_DIR="${BUILD_DIR:-/tmp/rtl8188fu-build}"
 OUTPUT_DIR="${OUTPUT_DIR:-$(pwd)/dist}"
-KDIR="${KDIR:-/lib/modules/$(uname -r)/build}"
-CROSS_COMPILE="${CROSS_COMPILE:-arm-linux-musleabi-}"
+KDIR="${KDIR:-/tmp/linux-gk710x}"
+CROSS_COMPILE="${CROSS_COMPILE:-arm-linux-gnueabi-}"
 ARCH="${ARCH:-arm}"
 REPO_URL="https://github.com/kelebek333/rtl8188fu.git"
 
@@ -31,15 +31,18 @@ fi
 
 if [ -d "${BUILD_DIR}/rtl8188fu" ]; then
     cd "${BUILD_DIR}/rtl8188fu"
-    echo "[2/3] Configuring for ARM architecture..."
-    # Disable default x86 and enable ARM
+    echo "[2/3] Configuring for ARM architecture & GCC compatibility..."
     sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/' Makefile
-    sed -i 's/CONFIG_PLATFORM_ARM_RPI = n/CONFIG_PLATFORM_ARM_RPI = y/' Makefile
+    grep -q "CONFIG_LITTLE_ENDIAN" Makefile || sed -i '1i EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN -Wno-error -fcommon' Makefile
+    sed -i 's/extern __inline/static inline/g' include/ieee80211.h
 
     echo "[3/3] Compiling 8188fu.ko kernel module..."
     make ARCH="${ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" KSRC="${KDIR}" modules
-    cp 8188fu.ko "${OUTPUT_DIR}/8188fu.ko"
-    echo "✅ Successfully built: ${OUTPUT_DIR}/8188fu.ko"
+    KO_FILE=$(find . -maxdepth 1 -name "*.ko" | head -n 1)
+    if [ -n "${KO_FILE}" ]; then
+        cp "${KO_FILE}" "${OUTPUT_DIR}/8188fu.ko"
+        echo "✅ Successfully built: ${OUTPUT_DIR}/8188fu.ko"
+    fi
 else
     echo "Offline verification passed. Verified USB Device ID: 0bda:f179"
 fi
