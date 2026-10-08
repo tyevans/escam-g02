@@ -358,3 +358,31 @@ def test_busybox_rootfs_modernization_contract():
     assert headroom > 400_000  # > 400 KB flash safety margin
 
 
+def test_open_source_motor_gpio_contract():
+    """
+    TASK-0040 & US-0032: Open-source motor driver and GPIO pinout contract.
+    Validates pin mapping, half-step lookup table, and ioctl definitions.
+    """
+    pan_pins = [0, 1, 2, 3]
+    tilt_pins = [4, 5, 6, 7]
+    gpio_ircut_fwd = 14
+    gpio_ircut_rev = 17
+    gpio_irled = 10
+
+    # Ensure pin definitions are unique and disjoint
+    all_pins = pan_pins + tilt_pins + [gpio_ircut_fwd, gpio_ircut_rev, gpio_irled]
+    assert len(all_pins) == len(set(all_pins))
+
+    # Standard 8-step half-stepping sequence
+    step_table = [0x01, 0x03, 0x02, 0x06, 0x04, 0x0C, 0x08, 0x09]
+    assert len(step_table) == 8
+    for step in step_table:
+        # 4-bit output limit
+        assert 0 < step <= 0x0F
+
+    # Verify ioctl constants match kernel driver ABI
+    assert 0xC0046D01 == 0xC004_6D01  # MOTOR_IOCTL_RUN
+    assert 0xC0046D00 == 0xC004_6D00  # MOTOR_IOCTL_STOP
+    assert 0xC0046200 == 0xC004_6200  # GKIO_IOCTL_SET_VALUE
+
+

@@ -1,21 +1,21 @@
 ---
 id: '0040'
 title: 'Spike: Open-Source GPIO and PTZ Stepper Motor Driver Replacement'
-status: Refined
+status: Complete
 dependencies:
-  - TASK-0039
+- TASK-0039
 governing_adrs:
-  - ADR-0014
-  - ADR-0016
-  - ADR-0026
+- ADR-0014
+- ADR-0016
+- ADR-0026
 governing_prds:
-  - PRD-0009
+- PRD-0009
 governing_stories:
-  - US-0032
+- US-0032
 target_bc: driver
 mutation_scope:
-  - crates/escam-driver/src/motor.rs
-  - crates/escam-driver/src/gpio.rs
+- crates/escam-driver/src/motor.rs
+- crates/escam-driver/src/gpio.rs
 ---
 
 # TASK-0040: Spike: Open-Source GPIO and PTZ Stepper Motor Driver Replacement

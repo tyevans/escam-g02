@@ -41,6 +41,6 @@ Strict sequential order of execution for engineering tasks.
 - **TASK-0037 (Complete)**: [`0037-flash-debloater-and-clean-boot-hardening`](complete/0037-flash-debloater-and-clean-boot-hardening.md)
 - **TASK-0038 (Complete)**: [`0038-diataxis-documentation-suite-and-openapi-spec`](complete/0038-diataxis-documentation-suite-and-openapi-spec.md)
 - **TASK-0039 (Complete)**: [`0039-spike-modern-busybox-musl-cross-compilation-and-rootfs`](complete/0039-spike-modern-busybox-musl-cross-compilation-and-rootfs.md)
-- **TASK-0040 (Refined)**: [`0040-spike-open-source-gpio-and-ptz-motor-driver`](refined/0040-spike-open-source-gpio-and-ptz-motor-driver.md)
+- **TASK-0040 (Complete)**: [`0040-spike-open-source-gpio-and-ptz-motor-driver`](complete/0040-spike-open-source-gpio-and-ptz-motor-driver.md)
 - **TASK-0041 (Refined)**: [`0041-spike-rtl8188fu-wifi-and-gc1034-sensor-sourcing`](refined/0041-spike-rtl8188fu-wifi-and-gc1034-sensor-sourcing.md)
 - **TASK-0042 (Refined)**: [`0042-spike-gk7102-vpu-isp-and-mainline-kernel-feasibility`](refined/0042-spike-gk7102-vpu-isp-and-mainline-kernel-feasibility.md)
