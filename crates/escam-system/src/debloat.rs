@@ -36,6 +36,7 @@ impl Debloater {
         // Strictly protect kernel modules, essential libs, and pure escam artifacts
         if path_str.ends_with(".ko")
             || path_str.contains("escamd")
+            || path_str.contains("busybox")
             || path_str.ends_with("/run")
             || path_str.contains("wifi.conf")
             || path_str.contains("resolv.conf")
@@ -99,6 +100,10 @@ impl Debloater {
 # ESCAM G02 Pure Rust Clean-Boot Init Script
 # Zero vendor cloud daemons, deterministic memory footprint
 
+if [ -d /mnt/mtd/ipc/conf/bin ]; then
+    export PATH="/mnt/mtd/ipc/conf/bin:$PATH"
+fi
+
 echo "[init] Loading hardware kernel modules..."
 insmod /mnt/mtd/ipc/modules/hal.ko 2>/dev/null
 insmod /mnt/mtd/ipc/modules/media.ko 2>/dev/null
@@ -130,9 +135,11 @@ mod tests {
         assert!(!Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/modules/motor.ko")));
         assert!(!Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/conf/escamd.gz")));
         assert!(!Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/conf/run")));
+        assert!(!Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/conf/bin/busybox")));
 
         assert!(Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/conf/config_cloud.ini")));
         assert!(Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/web/index.html")));
         assert!(Debloater::is_reclaimable(Path::new("/mnt/mtd/ipc/audio/welcome.g711")));
     }
 }
+

@@ -1,19 +1,19 @@
 ---
-id: '0039'
+id: 0039
 title: 'Spike: Modern Musl-Linked BusyBox Cross-Compilation and RootFS Modernization'
-status: Refined
+status: Complete
 dependencies:
-  - TASK-0037
+- TASK-0037
 governing_adrs:
-  - ADR-0013
-  - ADR-0025
+- ADR-0013
+- ADR-0025
 governing_prds:
-  - PRD-0009
+- PRD-0009
 governing_stories:
-  - US-0031
+- US-0031
 target_bc: system
 mutation_scope:
-  - crates/escam-system/src/debloat.rs
+- crates/escam-system/src/debloat.rs
 ---
 
 # TASK-0039: Spike: Modern Musl-Linked BusyBox Cross-Compilation and RootFS Modernization
