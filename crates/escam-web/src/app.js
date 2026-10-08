@@ -315,14 +315,16 @@ fetch('/api/v1/status').then(r => r.json()).then(st => {
 const zone = document.getElementById('joystickZone'), handle = document.getElementById('joystickHandle');
 let dragging = false, lastPtzSend = 0, maxRadius = 55;
 function sendJoystickCoords(x, y) {
+  const isStop = (x === 0 && y === 0);
+  const now = Date.now();
+  if (!isStop && now - lastPtzSend < 40) return;
+  lastPtzSend = now;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'ptz_joystick', x, y }));
+    if (isStop) ws.send(JSON.stringify({ type: 'ptz_stop' }));
   } else {
-    const now = Date.now();
-    if (now - lastPtzSend > 75) {
-      lastPtzSend = now;
-      fetch('/api/v1/ptz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'Joystick', x, y }) }).catch(() => {});
-    }
+    const act = isStop ? 'Stop' : 'Joystick';
+    fetch('/api/v1/ptz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: act, x, y }) }).catch(() => {});
   }
 }
 function handleMove(clientX, clientY) {
@@ -332,13 +334,43 @@ function handleMove(clientX, clientY) {
   handle.style.transform = `translate(${dx}px, ${dy}px)`;
   sendJoystickCoords(dx / maxRadius, -dy / maxRadius);
 }
-zone.addEventListener('pointerdown', (e) => { dragging = true; handleMove(e.clientX, e.clientY); });
+zone.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  if (zone.setPointerCapture) { try { zone.setPointerCapture(e.pointerId); } catch (_) {} }
+  handleMove(e.clientX, e.clientY);
+});
 window.addEventListener('pointermove', (e) => { if (dragging) handleMove(e.clientX, e.clientY); });
 function handleEnd() {
   if (dragging) {
-    dragging = false; handle.style.transform = 'translate(0px, 0px)';
+    dragging = false;
+    handle.style.transform = 'translate(0px, 0px)';
+    sendJoystickCoords(0, 0);
     fetch('/api/v1/ptz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'Stop' }) }).catch(() => {});
   }
 }
 window.addEventListener('pointerup', handleEnd);
 window.addEventListener('pointercancel', handleEnd);
+
+// Keyboard arrow and WASD steering
+window.addEventListener('keydown', (e) => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  let kx = 0, ky = 0;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') kx = -0.8;
+  else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') kx = 0.8;
+  else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') ky = 0.8;
+  else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') ky = -0.8;
+  if (kx !== 0 || ky !== 0) {
+    e.preventDefault();
+    handle.style.transform = `translate(${kx * maxRadius}px, ${-ky * maxRadius}px)`;
+    sendJoystickCoords(kx, ky);
+  }
+});
+window.addEventListener('keyup', (e) => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'a', 'd', 'w', 's', 'A', 'D', 'W', 'S'].includes(e.key)) {
+    e.preventDefault();
+    handle.style.transform = 'translate(0px, 0px)';
+    sendJoystickCoords(0, 0);
+    fetch('/api/v1/ptz', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'Stop' }) }).catch(() => {});
+  }
+});

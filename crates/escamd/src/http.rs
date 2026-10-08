@@ -98,6 +98,15 @@ pub async fn handle_http_connection(
         status.total_stacked_exposure_secs = 0.0;
         let resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 42\r\nConnection: close\r\n\r\n{\"success\":true,\"message\":\"Stack reset\"}";
         stream.write_all(resp.as_bytes()).await?;
+    } else if method == "POST" && (path == "/api/v1/ptz/home" || path == "/api/v1/ptz/home/") {
+        let _ = state.ptz.home().await;
+        let body = r#"{"success":true,"message":"Homed"}"#;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
     } else if method == "POST" && path == "/api/v1/ptz" {
         let body_start = req_str.find("\r\n\r\n").map(|i| i + 4).unwrap_or(n);
         let body_slice = &req_str[body_start..];
@@ -106,11 +115,15 @@ pub async fn handle_http_connection(
             if action == "Stop" {
                 let _ = state.ptz.stop().await;
             } else if action == "Home" {
-                let _ = state.ptz.stop().await;
+                let _ = state.ptz.home().await;
             } else if action == "Joystick" {
                 let x = json["x"].as_f64().unwrap_or(0.0) as f32;
                 let y = json["y"].as_f64().unwrap_or(0.0) as f32;
-                let _ = state.ptz.drive_joystick(x, y).await;
+                if x == 0.0 && y == 0.0 {
+                    let _ = state.ptz.stop().await;
+                } else {
+                    let _ = state.ptz.drive_joystick(x, y).await;
+                }
             }
         }
         let body = r#"{"success":true,"message":"PTZ command executed"}"#;
@@ -359,7 +372,13 @@ async fn handle_websocket_upgrade(
                         if json["type"] == "ptz_joystick" {
                             let x = json["x"].as_f64().unwrap_or(0.0) as f32;
                             let y = json["y"].as_f64().unwrap_or(0.0) as f32;
-                            let _ = state.ptz.drive_joystick(x, y).await;
+                            if x == 0.0 && y == 0.0 {
+                                let _ = state.ptz.stop().await;
+                            } else {
+                                let _ = state.ptz.drive_joystick(x, y).await;
+                            }
+                        } else if json["type"] == "ptz_stop" {
+                            let _ = state.ptz.stop().await;
                         }
                     }
                 }

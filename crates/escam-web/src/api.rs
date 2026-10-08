@@ -177,7 +177,7 @@ pub async fn ptz_handler(
             })
         }
         "Home" => {
-            let _ = state.ptz.stop().await;
+            let _ = state.ptz.home().await;
             Json(ApiResponse {
                 success: true,
                 message: "Homed".into(),
@@ -186,7 +186,11 @@ pub async fn ptz_handler(
         "Joystick" => {
             let x = payload.x.unwrap_or(0.0);
             let y = payload.y.unwrap_or(0.0);
-            let _ = state.ptz.drive_joystick(x, y).await;
+            if x == 0.0 && y == 0.0 {
+                let _ = state.ptz.stop().await;
+            } else {
+                let _ = state.ptz.drive_joystick(x, y).await;
+            }
             Json(ApiResponse {
                 success: true,
                 message: "Joystick updated".into(),
@@ -197,6 +201,15 @@ pub async fn ptz_handler(
             message: "Command processed".into(),
         }),
     }
+}
+
+/// Dedicated homing endpoint to re-center mount.
+pub async fn ptz_home_handler(State(state): State<AppState>) -> Json<ApiResponse> {
+    let _ = state.ptz.home().await;
+    Json(ApiResponse {
+        success: true,
+        message: "Homed".into(),
+    })
 }
 
 /// Sets IR-cut filter mode.
@@ -267,7 +280,13 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
                 if json["type"] == "ptz_joystick" {
                     let x = json["x"].as_f64().unwrap_or(0.0) as f32;
                     let y = json["y"].as_f64().unwrap_or(0.0) as f32;
-                    let _ = state.ptz.drive_joystick(x, y).await;
+                    if x == 0.0 && y == 0.0 {
+                        let _ = state.ptz.stop().await;
+                    } else {
+                        let _ = state.ptz.drive_joystick(x, y).await;
+                    }
+                } else if json["type"] == "ptz_stop" {
+                    let _ = state.ptz.stop().await;
                 }
             }
         }

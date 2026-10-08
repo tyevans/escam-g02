@@ -5,7 +5,7 @@
 use crate::api::{
     app_js_handler, astro_capture_fits_handler, camera_get_handler, camera_post_handler,
     camera_stack_reset_handler, index_handler, ircut_handler, irled_handler, jmuxer_handler,
-    ptz_handler, snapshot_handler, status_handler, stream_handler, style_handler, ws_handler,
+    ptz_handler, ptz_home_handler, snapshot_handler, status_handler, stream_handler, style_handler, ws_handler,
     AppState,
 };
 use axum::routing::{get, post};
@@ -22,6 +22,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/v1/camera", get(camera_get_handler).post(camera_post_handler))
         .route("/api/v1/camera/stack/reset", post(camera_stack_reset_handler))
         .route("/api/v1/ptz", post(ptz_handler))
+        .route("/api/v1/ptz/home", post(ptz_home_handler))
         .route("/api/v1/ircut", post(ircut_handler))
         .route("/api/v1/irled", post(irled_handler))
         .route("/api/v1/snapshot", get(snapshot_handler))

@@ -133,7 +133,10 @@ impl<M: MotorDevice + 'static> PtzController<M> {
     pub async fn home(&self) -> Result<(), PtzError> {
         let center_pan = (self.config.pan_min_deg + self.config.pan_max_deg) / 2.0;
         let center_tilt = (self.config.tilt_min_deg + self.config.tilt_max_deg) / 2.0;
-        self.set_position(center_pan, center_tilt).await
+        self.set_position(center_pan, center_tilt).await?;
+        self.stop().await?;
+        let _ = self.motor.auto_check_home();
+        Ok(())
     }
 
     /// Drives continuous motion using virtual joystick input (x, y) where x, y in [-1.0, 1.0].
@@ -280,9 +283,13 @@ async fn run_interleaved_loop<M: MotorDevice + 'static>(
     initial_cmd: MotorRun,
 ) {
     let mut last_cmd = initial_cmd;
+    let mut interval = tokio::time::interval(slice_duration);
+    interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    interval.tick().await;
+
     loop {
         tokio::select! {
-            _ = tokio::time::sleep(slice_duration) => {
+            _ = interval.tick() => {
                 let cmd = *rx.borrow();
                 interleaver.update_weights(cmd.x, cmd.y);
                 let axis = interleaver.next_axis();
