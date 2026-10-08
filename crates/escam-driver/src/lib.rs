@@ -10,8 +10,10 @@ pub mod gpio;
 pub mod motor;
 pub mod sensor;
 pub mod userspace_motor;
+pub mod vpu;
 
 pub use gpio::{GpioDevice, GpioVal, IrCutController, LinuxGpioDevice, MockGpioDevice};
 pub use motor::{LinuxMotorDevice, MockMotorDevice, MotorDevice, MotorRun, MotorSpeed};
 pub use sensor::{MockSensorBus, SensorBus, SensorI2cDriver, SensorRegisters, GC1034_CHIP_ID, SC1135_CHIP_ID};
 pub use userspace_motor::{UserspaceMotorController, HALF_STEP_TABLE, PAN_PINS, TILT_PINS};
+pub use vpu::{GkEncStreamHeader, GkViConfig, VpuStreamPump, GK_ENC_IOC_GET_STREAM, MMZ_PHYSICAL_BASE, MMZ_PHYSICAL_SIZE};

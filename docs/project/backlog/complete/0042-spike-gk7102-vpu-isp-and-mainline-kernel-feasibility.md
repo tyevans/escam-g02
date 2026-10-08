@@ -1,19 +1,20 @@
 ---
 id: '0042'
-title: 'Spike: GK7102 VPU/ISP Hardware Driver Reverse Engineering and Mainline Kernel Feasibility'
-status: Refined
+title: 'Spike: GK7102 VPU/ISP Hardware Driver Reverse Engineering and Mainline Kernel
+  Feasibility'
+status: Complete
 dependencies:
-  - TASK-0041
+- TASK-0041
 governing_adrs:
-  - ADR-0020
-  - ADR-0026
+- ADR-0020
+- ADR-0026
 governing_prds:
-  - PRD-0009
+- PRD-0009
 governing_stories:
-  - US-0034
+- US-0034
 target_bc: driver
 mutation_scope:
-  - crates/escam-driver/src/lib.rs
+- crates/escam-driver/src/lib.rs
 ---
 
 # TASK-0042: Spike: GK7102 VPU/ISP Hardware Driver Reverse Engineering and Mainline Kernel Feasibility

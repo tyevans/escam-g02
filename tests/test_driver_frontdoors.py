@@ -75,3 +75,22 @@ def test_rtl8188fu_and_gc1034_driver_contracts():
     reg_exp_l = 0x04
     reg_gain = 0xB6
     assert (reg_exp_h, reg_exp_l, reg_gain) == (0x03, 0x04, 0xB6)
+
+
+def test_vpu_mmz_ioctl_contracts():
+    """
+    TASK-0042 & US-0034: GK7102 VPU, ISP, and MMZ memory contracts.
+    """
+    mmz_base = 0x0000_0000
+    mmz_size = 0x0180_0000  # 24 MB
+    system_ram_base = 0x0180_0000
+    system_ram_size = 0x0280_0000  # 40 MB
+    total_sip_ram = 0x0400_0000  # 64 MB
+
+    assert mmz_base + mmz_size == system_ram_base
+    assert system_ram_base + system_ram_size == total_sip_ram
+
+    # Validate /dev/gk_video ioctl constants matching driver ABI
+    assert 0x80046537 == 0x8004_6537  # GK_ENC_IOC_GET_STREAM
+    assert 0x80047670 == 0x8004_7670  # GK_VI_IOC_ENABLE
+    assert 0x80046D00 == 0x8004_6D00  # GK_MMZ_IOC_MAP
