@@ -24,3 +24,5 @@
 | ADR-0022 | Astronomical Calibration Frames, Master Dark/Flat/Bias Subtraction, and WCS FITS Metadata | Accepted | 2026-10-06 |
 | ADR-0023 | Real-Time Star Detection, FWHM Seeing Analysis, and Closed-Loop Optical Autoguiding | Accepted | 2026-10-06 |
 | ADR-0024 | Transient Event Detection, Meteor Streak Analyzer, and Zero-Copy Ringbuffer Video Recording | Accepted | 2026-10-06 |
+| ADR-0025 | Modern Musl-Linked BusyBox Userspace and RootFS Modernization | Accepted | 2026-10-07 |
+| ADR-0026 | Open-Source Kernel Drivers and GK7102 Peripheral Sourcing Roadmap | Accepted | 2026-10-07 |

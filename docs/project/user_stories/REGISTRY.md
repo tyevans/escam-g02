@@ -32,3 +32,7 @@
 | US-0028 | Direct Sensor I2C Register Control and Shutter Integration Timing | Accepted | Elena | driver | PRD-0008 |
 | US-0029 | Vendor Firmware Debloater and Clean-Boot Security Lockdown | Accepted | Elena | system | PRD-0008 |
 | US-0030 | Comprehensive OpenAPI 3.1 Specification and Diataxis Documentation Suite | Accepted | Marcus | core | PRD-0008 |
+| US-0031 | Modern Musl-Linked BusyBox Toolchain and RootFS Modernization | Accepted | Elena | system | PRD-0009 |
+| US-0032 | Open-Source Stepper Motor and GPIO Peripheral Drivers | Accepted | Elena | driver | PRD-0009 |
+| US-0033 | Sourced Realtek RTL8188FTV Wi-Fi and GC1034 Sensor Drivers | Accepted | Elena | driver | PRD-0009 |
+| US-0034 | GK7102 VPU/ISP Hardware Driver and Mainline Kernel Feasibility | Accepted | Elena | driver | PRD-0009 |

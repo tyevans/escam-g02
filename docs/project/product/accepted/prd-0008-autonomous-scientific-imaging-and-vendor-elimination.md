@@ -4,6 +4,7 @@ title: Autonomous Scientific Imaging, Calibration Pipeline, and Pure Open-Source
 status: Accepted
 author: Lead Architect
 created: 2026-10-06
+target_persona: Marcus
 target_bc: core
 ---
 
