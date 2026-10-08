@@ -42,10 +42,10 @@ def main():
 
     print("=== Step 4: Decompress and perform atomic swap ===")
     commands = [
-        ("cp /mnt/mtd/ipc/tmpfs/escamd.gz /mnt/mtd/ipc/conf/escamd.gz", 0.5),
-        ("zcat /mnt/mtd/ipc/tmpfs/escamd.gz > /mnt/mtd/ipc/tmpfs/escamd.new && chmod +x /mnt/mtd/ipc/tmpfs/escamd.new", 2.5),
+        ("zcat /mnt/mtd/ipc/tmpfs/escamd.gz > /mnt/mtd/ipc/tmpfs/escamd.new && chmod +x /mnt/mtd/ipc/tmpfs/escamd.new", 3.0),
         ("killall -9 escamd onvif net_detect sd.sh sd_detect 2>/dev/null", 1.0),
-        ("rm -f /mnt/mtd/ipc/tmpfs/escamd && mv /mnt/mtd/ipc/tmpfs/escamd.new /mnt/mtd/ipc/tmpfs/escamd && chmod +x /mnt/mtd/ipc/tmpfs/escamd && /mnt/mtd/ipc/tmpfs/escamd > /mnt/mtd/ipc/tmpfs/escamd.log 2>&1 &", 1.5),
+        ("rm -f /mnt/mtd/ipc/tmpfs/escamd && mv /mnt/mtd/ipc/tmpfs/escamd.new /mnt/mtd/ipc/tmpfs/escamd && chmod +x /mnt/mtd/ipc/tmpfs/escamd && /mnt/mtd/ipc/tmpfs/escamd > /mnt/mtd/ipc/tmpfs/escamd.log 2>&1 &", 2.0),
+        ("rm -f /mnt/mtd/ipc/conf/escamd.gz && sync && cp -f /mnt/mtd/ipc/tmpfs/escamd.gz /mnt/mtd/ipc/conf/escamd.gz && sync", 15.0),
         ("ps | grep escamd", 0.5),
         ("cat /mnt/mtd/ipc/tmpfs/escamd.log", 0.5),
     ]

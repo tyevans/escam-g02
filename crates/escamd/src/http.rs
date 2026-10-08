@@ -19,12 +19,29 @@ pub async fn handle_http_connection(
     let first_line = req_str.lines().next().unwrap_or("");
     let mut parts = first_line.split_whitespace();
     let method = parts.next().unwrap_or("GET");
-    let path = parts.next().unwrap_or("/");
+    let raw_path = parts.next().unwrap_or("/");
+    let path = raw_path.split('?').next().unwrap_or("/");
 
     if method == "GET" && path == "/" {
         let body = escam_web::assets::INDEX_HTML;
         let resp = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
+    } else if method == "GET" && path == "/style.css" {
+        let body = escam_web::assets::STYLE_CSS;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/css; charset=utf-8\r\nCache-Control: public, max-age=86400\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
+    } else if method == "GET" && path == "/app.js" {
+        let body = escam_web::assets::APP_JS;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/javascript; charset=utf-8\r\nCache-Control: no-cache, no-store, must-revalidate\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             body.len(),
             body
         );
@@ -45,6 +62,41 @@ pub async fn handle_http_connection(
             body.len(),
             body
         );
+        stream.write_all(resp.as_bytes()).await?;
+    } else if method == "GET" && path == "/api/v1/camera" {
+        let status = state.status.lock().await;
+        let body = serde_json::to_string(&status.controls)?;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
+    } else if method == "POST" && path == "/api/v1/camera" {
+        let body_start = req_str.find("\r\n\r\n").map(|i| i + 4).unwrap_or(n);
+        let body_slice = &req_str[body_start..];
+        let mut status = state.status.lock().await;
+        if let Ok(update) = serde_json::from_str::<escam_core::CameraControlsUpdate>(body_slice) {
+            update.apply_to(&mut status.controls);
+            status.controls.normalize();
+            let _ = crate::sensor_ctl::apply_hardware_sensor_controls(&status.controls).await;
+        }
+        let body = serde_json::to_string(&serde_json::json!({
+            "success": true,
+            "message": "Camera controls updated",
+            "controls": status.controls
+        }))?;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream.write_all(resp.as_bytes()).await?;
+    } else if method == "POST" && path == "/api/v1/camera/stack/reset" {
+        let mut status = state.status.lock().await;
+        status.stacked_frames = 0;
+        status.total_stacked_exposure_secs = 0.0;
+        let resp = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 42\r\nConnection: close\r\n\r\n{\"success\":true,\"message\":\"Stack reset\"}";
         stream.write_all(resp.as_bytes()).await?;
     } else if method == "POST" && path == "/api/v1/ptz" {
         let body_start = req_str.find("\r\n\r\n").map(|i| i + 4).unwrap_or(n);
@@ -104,16 +156,46 @@ pub async fn handle_http_connection(
         );
         stream.write_all(resp.as_bytes()).await?;
     } else if method == "GET" && path == "/api/v1/astro/capture.fits" {
-        use escam_astro::{BayerFrame, BayerPattern, FitsWriter};
-        let width = 1280;
-        let height = 720;
-        let mut frame = BayerFrame::new(width, height, 10, BayerPattern::Rggb, 1.0);
-        for y in 0..height {
-            for x in 0..width {
-                let val = ((x ^ y) % 1024) as u16;
-                frame.set_pixel(x, y, val);
+        use escam_astro::{apply_auto_stretch, BayerFrame, FitsWriter, StretchMode};
+        let (exposure, gain, (width, height), stretch_str) = {
+            let status = state.status.lock().await;
+            let exp = if let Some(pos) = raw_path.find("exposure=") {
+                raw_path[pos + 9..]
+                    .split('&')
+                    .next()
+                    .unwrap_or("")
+                    .parse::<f32>()
+                    .unwrap_or(status.controls.exposure_secs)
+            } else {
+                status.controls.exposure_secs
+            };
+            let st = if let Some(pos) = raw_path.find("stretch=") {
+                raw_path[pos + 8..].split('&').next().unwrap_or("").to_string()
+            } else {
+                status.controls.auto_stretch.clone()
+            };
+            (exp, status.controls.gain, status.controls.resolution.dimensions(), st)
+        };
+
+        let mut frame = if let Some(jpeg) = crate::sensor_ctl::fetch_camera_jpeg().await {
+            match BayerFrame::from_jpeg(&jpeg, exposure) {
+                Ok(mut f) => {
+                    if gain > 1.0 {
+                        for p in f.pixels.iter_mut() {
+                            *p = ((*p as f32) * gain.sqrt()).min(65535.0) as u16;
+                        }
+                    }
+                    f
+                }
+                Err(_) => crate::api_astro::generate_synthetic_bayer(width, height, exposure, gain),
             }
-        }
+        } else {
+            crate::api_astro::generate_synthetic_bayer(width, height, exposure, gain)
+        };
+
+        let stretch_mode = StretchMode::from_str_loose(&stretch_str);
+        apply_auto_stretch(&mut frame.pixels, stretch_mode);
+
         let fits_data = FitsWriter::write_fits(&frame);
         let header = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: image/fits\r\nContent-Disposition: attachment; filename=\"capture.fits\"\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
@@ -122,7 +204,7 @@ pub async fn handle_http_connection(
         stream.write_all(header.as_bytes()).await?;
         stream.write_all(&fits_data).await?;
     } else if method == "GET" && path == "/api/v1/snapshot" {
-        let jpeg = match fetch_camera_jpeg().await {
+        let jpeg = match crate::sensor_ctl::fetch_camera_jpeg().await {
             Some(jpg) => {
                 *state.frame.write().await = jpg.clone();
                 jpg
@@ -153,12 +235,24 @@ pub async fn handle_http_connection(
                 if stream.write_all(b"\r\n").await.is_err() {
                     break;
                 }
-                tokio::time::sleep(tokio::time::Duration::from_millis(66)).await;
+                let delay_ms = {
+                    let status = state.status.lock().await;
+                    (1000.0 / status.controls.target_fps.max(0.016)) as u64
+                };
+                tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms.clamp(33, 60000))).await;
             }
         }
     } else if method == "GET" && path == "/api/v1/ws" {
         handle_websocket_upgrade(stream, req_str, state).await?;
     } else {
+        let body_start = req_str.find("\r\n\r\n").map(|i| i + 4).unwrap_or(n);
+        let body_str = &req_str[body_start..];
+        if crate::api_astro::handle_astro_route(&mut stream, method, path, body_str, &state).await? {
+            return Ok(());
+        }
+        if crate::api_system::handle_system_route(&mut stream, method, path, body_str, &state).await? {
+            return Ok(());
+        }
         let resp = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
         stream.write_all(resp.as_bytes()).await?;
     }
@@ -274,39 +368,4 @@ async fn handle_websocket_upgrade(
         video_task.abort();
     }
     Ok(())
-}
-
-async fn fetch_camera_jpeg() -> Option<Vec<u8>> {
-    let mut sock = tokio::time::timeout(
-        tokio::time::Duration::from_millis(500),
-        tokio::net::TcpStream::connect("127.0.0.1:80"),
-    )
-    .await
-    .ok()?
-    .ok()?;
-
-    let req = b"GET /tmpfs/auto.jpg HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n";
-    sock.write_all(req).await.ok()?;
-
-    let mut buf = Vec::with_capacity(96 * 1024);
-    let mut chunk = [0u8; 8192];
-    loop {
-        match tokio::time::timeout(
-            tokio::time::Duration::from_millis(300),
-            sock.read(&mut chunk),
-        )
-        .await
-        {
-            Ok(Ok(n)) if n > 0 => buf.extend_from_slice(&chunk[..n]),
-            _ => break,
-        }
-    }
-
-    let pos = buf.windows(4).position(|w| w == b"\r\n\r\n")?;
-    let body = &buf[pos + 4..];
-    if body.len() > 100 && body.starts_with(&[0xFF, 0xD8]) {
-        Some(body.to_vec())
-    } else {
-        None
-    }
 }

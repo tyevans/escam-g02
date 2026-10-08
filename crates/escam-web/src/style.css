@@ -1,0 +1,185 @@
+:root {
+  --bg-dark: #0c110f; --bg-forest: #131a17; --patina-verdigris: #4fa394; --patina-mint: #7eceba;
+  --patina-dark: #24443b; --ochre-rich: #c68b39; --ochre-bright: #e5a84b; --sienna-burnt: #8c4327;
+  --brass-border: #7d5e33; --card-bg: rgba(19, 25, 22, 0.90); --text-col: #e2dbcb;
+  --decal-strata: radial-gradient(circle at 18% 22%, rgba(140, 67, 39, 0.18) 0%, transparent 45%),
+                  radial-gradient(circle at 82% 16%, rgba(79, 163, 148, 0.22) 0%, transparent 40%),
+                  radial-gradient(ellipse at 50% 85%, rgba(34, 26, 21, 0.6) 0%, transparent 60%);
+  --main-font: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+}
+body.theme-fnaf {
+  --bg-dark: #040804; --bg-forest: #070e08; --patina-verdigris: #228b22; --patina-mint: #39ff14;
+  --patina-dark: #0f2b13; --ochre-rich: #2bb82b; --ochre-bright: #39ff14; --sienna-burnt: #164016;
+  --brass-border: #1f4d24; --card-bg: rgba(6, 14, 7, 0.95); --text-col: #39ff14;
+  --decal-strata: radial-gradient(ellipse at 50% 50%, rgba(15, 38, 18, 0.3) 0%, transparent 80%);
+  --main-font: 'VT323', 'Courier New', Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body {
+  background: var(--decal-strata), linear-gradient(175deg, #090e0c 0%, #121815 45%, #181d19 100%);
+  color: var(--text-col); font-family: var(--main-font);
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+body.theme-fnaf {
+  background: var(--decal-strata), radial-gradient(circle at center, #0a140a 0%, #030603 100%);
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+}
+header {
+  width: 100%; max-width: 960px; display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--brass-border);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6); margin-bottom: 8px;
+}
+.logo {
+  font-size: 1rem; font-weight: 700; letter-spacing: 1.2px; color: var(--ochre-bright);
+  display: flex; align-items: center; gap: 8px;
+}
+.logo span { font-size: 0.72rem; color: var(--patina-mint); font-family: monospace; }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.badge {
+  font-family: 'Courier New', monospace; font-size: 0.7rem; letter-spacing: 1.2px; padding: 4px 8px;
+  border-radius: 4px; background: rgba(79, 163, 148, 0.12); color: var(--patina-mint);
+  border: 1px dashed var(--patina-verdigris); text-transform: uppercase;
+}
+body.theme-fnaf .badge {
+  background: rgba(57, 255, 20, 0.1); border-color: #39ff14; box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+}
+.theme-toggle-btn {
+  padding: 4px 10px; font-size: 0.72rem; letter-spacing: 1px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--brass-border); background: rgba(255,255,255,0.06); color: var(--text-col);
+  font-family: inherit; font-weight: 600;
+}
+.fnaf-subbar {
+  display: none; width: 100%; max-width: 960px; justify-content: space-between; align-items: center;
+  padding: 6px 14px; background: rgba(4, 10, 5, 0.95); border: 1px solid #1f4d24;
+  font-family: 'Courier New', monospace; font-size: 0.78rem; font-weight: 700; color: #39ff14;
+  margin-bottom: 8px; border-radius: 6px; box-shadow: 0 0 10px rgba(57, 255, 20, 0.15);
+}
+body.theme-fnaf .fnaf-subbar { display: flex; }
+.rec-dot { color: #ff3b30; text-shadow: 0 0 8px #ff3b30; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.1; } }
+main { width: 100%; max-width: 960px; display: grid; grid-template-columns: 1fr; gap: 12px; }
+.viewport-card {
+  position: relative; background: #000; border-radius: 8px; overflow: hidden;
+  aspect-ratio: 16 / 9; border: 2px solid var(--brass-border); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85);
+}
+body.theme-fnaf .viewport-card {
+  border: 8px solid #232a22; outline: 2px dashed #3a4738; outline-offset: -5px;
+  box-shadow: 0 0 0 3px #111610, 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(57, 255, 20, 0.2);
+}
+video, #liveImg { width: 100%; height: 100%; object-fit: contain; transition: filter 0.25s ease-in-out; }
+body.theme-fnaf.night-vision video,
+body.theme-fnaf.night-vision #liveImg {
+  filter: grayscale(100%) sepia(100%) hue-rotate(85deg) saturate(380%) brightness(1.15) contrast(1.25);
+}
+.crt-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+body.theme-fnaf .crt-overlay {
+  opacity: 1;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%),
+              radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.85) 100%);
+  background-size: 100% 3px, 100% 100%; animation: crtFlicker 0.15s infinite;
+}
+@keyframes crtFlicker { 0% { opacity: 0.92; } 50% { opacity: 0.99; } 100% { opacity: 0.94; } }
+.hud-overlay {
+  position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between;
+  pointer-events: none; font-family: 'Courier New', monospace; font-size: 0.8rem; letter-spacing: 0.5px;
+  color: var(--ochre-bright); text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 8px rgba(57,255,20,0.4);
+}
+.controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .controls-grid { grid-template-columns: 1fr; } }
+.card {
+  background: var(--card-bg); border: 1px solid var(--brass-border); border-radius: 8px;
+  padding: 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+.card h3 {
+  font-size: 0.82rem; margin-bottom: 12px; color: var(--ochre-rich); text-transform: uppercase;
+  letter-spacing: 1.5px; border-bottom: 1px solid rgba(198, 139, 57, 0.2); padding-bottom: 6px;
+}
+body.theme-fnaf .card h3 { border-bottom-color: rgba(57, 255, 20, 0.2); }
+.joystick-container {
+  position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 50%;
+  background: radial-gradient(circle, #15221c 0%, #0d1411 65%, #1f2d25 100%);
+  border: 2px solid var(--patina-dark); box-shadow: inset 0 0 24px rgba(0,0,0,0.9), 0 0 16px rgba(79,163,148,0.2);
+  display: flex; align-items: center; justify-content: center; touch-action: none;
+}
+.joystick-container::before {
+  content: ''; position: absolute; width: 110px; height: 110px; border-radius: 50%;
+  border: 1px dashed rgba(198, 139, 57, 0.25); pointer-events: none;
+}
+body.theme-fnaf .joystick-container {
+  background: radial-gradient(circle, #08170c 0%, #030a05 75%),
+              linear-gradient(0deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%),
+              linear-gradient(90deg, transparent 49%, rgba(57,255,20,0.18) 50%, transparent 51%);
+  border-color: #1f4d24; box-shadow: inset 0 0 24px rgba(0,0,0,0.95), 0 0 16px rgba(57,255,20,0.25);
+}
+body.theme-fnaf .joystick-container::before { border-color: rgba(57, 255, 20, 0.35); }
+.joystick-handle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff6e0 0%, #d49b43 18%, #8c4327 42%, #2c594d 72%, #0e1613 100%);
+  border: 2px solid var(--ochre-rich); box-shadow: 0 6px 18px rgba(0,0,0,0.85), 0 0 16px rgba(212,155,67,0.5);
+  position: absolute; cursor: grab; transition: transform 0.05s ease-out;
+}
+body.theme-fnaf .joystick-handle {
+  background: radial-gradient(circle at 35% 35%, #66ff66 0%, #208020 40%, #0a260a 80%);
+  border: 2px solid #39ff14; box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 18px rgba(57, 255, 20, 0.6);
+}
+.joystick-handle:active { cursor: grabbing; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+button {
+  flex: 1; min-width: 80px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--brass-border);
+  background: linear-gradient(180deg, #2b3933 0%, #19221e 100%); color: var(--text-col);
+  font-family: inherit; font-weight: 600; font-size: 0.78rem; letter-spacing: 0.5px;
+  cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.6);
+  transition: all 0.15s ease;
+}
+button:hover { background: linear-gradient(180deg, #374b43 0%, #202d27 100%); color: #fff; }
+button.active {
+  background: linear-gradient(180deg, var(--ochre-rich) 0%, var(--sienna-burnt) 100%);
+  color: #fff9ed; border-color: var(--ochre-bright); box-shadow: 0 0 14px rgba(198, 139, 57, 0.5);
+}
+body.theme-fnaf button {
+  background: linear-gradient(180deg, #2b362c 0%, #151d16 100%); color: #4af626;
+  border: 2px outset #3d4f3e; box-shadow: 0 3px 0 #0d140e, 0 4px 8px rgba(0,0,0,0.7);
+  text-transform: uppercase; font-weight: 700;
+}
+body.theme-fnaf button:active { border-style: inset; transform: translateY(2px); box-shadow: 0 1px 0 #0d140e; }
+body.theme-fnaf button.active {
+  background: linear-gradient(180deg, #1d4d23 0%, #0d2811 100%); color: #afffaf;
+  border: 2px inset #39ff14; box-shadow: 0 0 12px rgba(57, 255, 20, 0.45);
+}
+.control-row { margin-bottom: 12px; }
+.control-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+  font-size: 0.74rem; font-family: 'Courier New', monospace; font-weight: bold;
+}
+.value-badge {
+  color: var(--ochre-bright); background: rgba(0,0,0,0.4); padding: 2px 6px;
+  border-radius: 4px; border: 1px solid rgba(198, 139, 57, 0.3); font-size: 0.72rem;
+}
+body.theme-fnaf .value-badge { color: #39ff14; border-color: #39ff14; }
+.slider-container { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+input[type="range"] {
+  flex: 1; accent-color: var(--ochre-bright); height: 6px; border-radius: 3px; cursor: pointer;
+}
+body.theme-fnaf input[type="range"] { accent-color: #39ff14; }
+.custom-input {
+  width: 60px; padding: 4px 6px; font-size: 0.75rem; font-family: 'Courier New', monospace;
+  background: rgba(0,0,0,0.6); border: 1px solid var(--brass-border); color: var(--ochre-bright);
+  border-radius: 4px; text-align: right;
+}
+body.theme-fnaf .custom-input { color: #39ff14; border-color: #1f4d24; }
+select.astro-select {
+  width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--brass-border);
+  background: #19221e; color: var(--text-col); font-family: 'Courier New', monospace;
+  font-size: 0.78rem; font-weight: 600; margin-bottom: 8px; cursor: pointer;
+}
+body.theme-fnaf select.astro-select { background: #070e08; color: #39ff14; border-color: #1f4d24; }
+.exposure-progress {
+  width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden;
+  margin-top: 4px; border: 1px solid rgba(255,255,255,0.05); display: none;
+}
+.progress-bar { height: 100%; width: 0%; background: var(--ochre-bright); transition: width 0.1s linear; }
+body.theme-fnaf .progress-bar { background: #39ff14; box-shadow: 0 0 8px #39ff14; }
+.fnaf-only { display: none; }
+body.theme-fnaf .norm-only { display: none; }
+body.theme-fnaf .fnaf-only { display: inline; }

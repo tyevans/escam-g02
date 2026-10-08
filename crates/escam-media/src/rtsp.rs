@@ -153,7 +153,7 @@ impl RtspClient {
         let session = extract_between(&setup_resp, "Session: ", "\r").or_else(|| extract_between(&setup_resp, "Session: ", ";")).ok_or("Missing RTSP session")?;
 
         // 4. PLAY
-        let play_uri = format!("{}/", base_uri);
+        let play_uri = base_uri.clone();
         let auth_play = build_digest_auth("PLAY", &play_uri, &realm, &nonce);
         let play_req = format!(
             "PLAY {} RTSP/1.0\r\nCSeq: 4\r\nSession: {}\r\nAuthorization: {}\r\nRange: npt=0.000-\r\n\r\n",

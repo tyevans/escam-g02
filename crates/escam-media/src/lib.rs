@@ -4,12 +4,14 @@
 //! WebRTC peer session coordination, and live stream delivery.
 
 pub mod nalu;
+pub mod recorder;
 pub mod rtp;
 pub mod rtsp;
 pub mod vpu_stream;
 pub mod webrtc;
 
 pub use nalu::{H264StreamReader, Nalu, NaluType};
+pub use recorder::{is_h264_keyframe, BufferedNalu, ClipMetadata, EventClipRecorder};
 pub use rtp::{RtpDepacketizer, RtpPacket, RtpPacketizer};
 pub use rtsp::{md5_hex, RtspClient};
 pub use vpu_stream::{VpuStreamError, VpuUnixStreamReader};

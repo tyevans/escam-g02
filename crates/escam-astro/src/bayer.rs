@@ -61,6 +61,54 @@ impl BayerFrame {
             0
         }
     }
+
+    /// Decodes a JPEG image buffer into a 16-bit BayerFrame matching the sensor frame.
+    pub fn from_jpeg(jpeg_bytes: &[u8], exposure_secs: f32) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        use std::io::Cursor;
+        let mut decoder = jpeg_decoder::Decoder::new(Cursor::new(jpeg_bytes));
+        let raw_pixels = decoder.decode()?;
+        let info = decoder.info().ok_or("Missing JPEG header metadata")?;
+        let width = info.width as u32;
+        let height = info.height as u32;
+
+        let mut frame = Self::new(width, height, 16, BayerPattern::Rggb, exposure_secs);
+
+        match info.pixel_format {
+            jpeg_decoder::PixelFormat::L8 => {
+                for (i, &lum) in raw_pixels.iter().enumerate().take(frame.pixels.len()) {
+                    frame.pixels[i] = (lum as u16) * 257;
+                }
+            }
+            jpeg_decoder::PixelFormat::RGB24 => {
+                for y in 0..height {
+                    for x in 0..width {
+                        let idx = (y * width + x) as usize;
+                        let rgb_idx = idx * 3;
+                        if rgb_idx + 2 < raw_pixels.len() {
+                            let r = raw_pixels[rgb_idx] as u16;
+                            let g = raw_pixels[rgb_idx + 1] as u16;
+                            let b = raw_pixels[rgb_idx + 2] as u16;
+                            let val = match (y % 2 == 0, x % 2 == 0) {
+                                (true, true) => r,
+                                (true, false) => g,
+                                (false, true) => g,
+                                (false, false) => b,
+                            };
+                            frame.pixels[idx] = val * 257;
+                        }
+                    }
+                }
+            }
+            _ => {
+                for (i, p) in frame.pixels.iter_mut().enumerate() {
+                    let src_idx = i.min(raw_pixels.len().saturating_sub(1));
+                    *p = (raw_pixels[src_idx] as u16) * 257;
+                }
+            }
+        }
+
+        Ok(frame)
+    }
 }
 
 #[cfg(test)]

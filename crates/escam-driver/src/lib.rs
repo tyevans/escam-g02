@@ -4,9 +4,12 @@
 //! Goke GK7102C Linux kernel character device nodes:
 //! - `/dev/motor`: 2-axis PTZ stepper motor driver via `motor.ko`
 //! - `/dev/gkio`: General purpose I/O and IR-cut H-bridge driver via `gkio.ko`
+//! - Sensor I2C: Direct CMOS register access for GC1034 / SC1135
 
 pub mod gpio;
 pub mod motor;
+pub mod sensor;
 
 pub use gpio::{GpioDevice, GpioVal, IrCutController, LinuxGpioDevice, MockGpioDevice};
 pub use motor::{LinuxMotorDevice, MockMotorDevice, MotorDevice, MotorRun, MotorSpeed};
+pub use sensor::{MockSensorBus, SensorBus, SensorI2cDriver, SensorRegisters, GC1034_CHIP_ID, SC1135_CHIP_ID};

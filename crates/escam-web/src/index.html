@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ESCAM G02 • Astrophotography & Surveillance Station</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="norm-only">⚡ ESCAM G02 <span>• Pure Rust Firmware</span></span>
+      <span class="fnaf-only">FREDDY FAZBEAR'S PIZZA • SURVEILLANCE SYS</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">
+        <span class="norm-only">THEME: STUDIO</span><span class="fnaf-only">THEME: FAZBEAR</span>
+      </button>
+      <div class="badge" id="connStatus">ONLINE</div>
+    </div>
+  </header>
+  <div class="fnaf-subbar">
+    <div><span class="rec-dot">● REC</span> CAM 01 - SHOW STAGE</div>
+    <div id="fnafClock">12:00 AM • NIGHT 1</div>
+    <div>POWER LEFT: <span id="powerMeter">99%</span> [||| ]</div>
+  </div>
+  <main>
+    <div class="viewport-card">
+      <video id="liveVideo" autoplay playsinline muted style="display:none;"></video>
+      <img id="liveImg" src="/api/v1/stream" alt="Live Stream">
+      <div class="crt-overlay"></div>
+      <div class="hud-overlay">
+        <span id="hudFps">25.0 FPS</span>
+        <span id="hudExp">Exp: 0.04s</span>
+        <span id="hudGain">Gain: 1.0x</span>
+        <span id="hudRes">720p</span>
+        <span id="hudFocus">Stars: 0 | FWHM: 0.0px</span>
+        <span id="hudLatency">&lt; 65ms</span>
+      </div>
+    </div>
+    <div class="exposure-progress" id="exposureProgressContainer">
+      <div class="progress-bar" id="exposureProgressBar"></div>
+    </div>
+
+    <div class="controls-grid">
+      <!-- Card 1: PTZ S-Curve Virtual Joystick -->
+      <div class="card">
+        <h3>
+          <span class="norm-only">PTZ S-Curve Virtual Joystick</span>
+          <span class="fnaf-only">SURVEILLANCE RADAR TRACKPAD</span>
+        </h3>
+        <div class="joystick-container" id="joystickZone">
+          <div class="joystick-handle" id="joystickHandle"></div>
+        </div>
+        <div style="margin-top: 14px;">
+          <h3>
+            <span class="norm-only">Mount Quick Presets</span>
+            <span class="fnaf-only">FACILITY PRESET ACTIONS</span>
+          </h3>
+          <div class="btn-group">
+            <button onclick="calibrateHome()">
+              <span class="norm-only">Soft Home</span><span class="fnaf-only">CAM 1A (HOME)</span>
+            </button>
+            <button id="btnGuide" onclick="toggleAutoguide()">
+              <span class="norm-only">Autoguide</span><span class="fnaf-only">AUTO-TRACK</span>
+            </button>
+            <button onclick="captureMasterDark()">
+              <span class="norm-only">Dark Cal</span><span class="fnaf-only">CALIBRATE</span>
+            </button>
+            <button onclick="triggerClipRecord()">
+              <span class="norm-only">REC Clip</span><span class="fnaf-only">REC BUFFER</span>
+            </button>
+            <button onclick="downloadFits()">
+              <span class="norm-only">FITS Raw</span><span class="fnaf-only">RAW FITS</span>
+            </button>
+          </div>
+          <select id="selTarget" class="astro-select" onchange="slewToTarget(this.value)" style="margin-top: 8px;">
+            <option value="">-- Celestial GoTo Target --</option>
+            <option value="Polaris">⭐ Polaris (NCP Align)</option>
+            <option value="Vega">⭐ Vega (Bright Star)</option>
+            <option value="Jupiter">🪐 Jupiter (Gas Giant)</option>
+            <option value="Saturn">🪐 Saturn (Rings)</option>
+            <option value="Andromeda Galaxy">🌌 M31 Andromeda Galaxy</option>
+            <option value="Orion Nebula">🌌 M42 Orion Nebula</option>
+            <option value="Pleiades">✨ M45 Pleiades Cluster</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Card 2: Optical Filter & Sensor Profile -->
+      <div class="card">
+        <h3>
+          <span class="norm-only">Optical Filter & Presets</span>
+          <span class="fnaf-only">OPTICAL MODE CONTROL</span>
+        </h3>
+        <div class="btn-group">
+          <button id="btnDay" class="active" onclick="setIrCut('Day')">
+            <span class="norm-only">Day (IR-Cut ON)</span><span class="fnaf-only">DAYTIME CAM</span>
+          </button>
+          <button id="btnNight" onclick="setIrCut('Night')">
+            <span class="norm-only">Night / Astro</span><span class="fnaf-only">NIGHT VISION</span>
+          </button>
+          <button id="btnIrLed" onclick="toggleIrLed()">
+            <span class="norm-only">IR LED: OFF</span><span class="fnaf-only">IR ILLUM: OFF</span>
+          </button>
+        </div>
+
+        <h3 style="margin-top: 14px;">
+          <span class="norm-only">Astrophoto Scene Presets</span>
+          <span class="fnaf-only">ASTRO TARGET PROFILES</span>
+        </h3>
+        <div class="btn-group">
+          <button onclick="applyAstroPreset('planetary')">
+            <span class="norm-only">🌕 Planetary (1/100s)</span><span class="fnaf-only">PLANETARY</span>
+          </button>
+          <button onclick="applyAstroPreset('deepsky')">
+            <span class="norm-only">🌌 Deep Sky (10s)</span><span class="fnaf-only">DEEP SKY 10s</span>
+          </button>
+          <button onclick="applyAstroPreset('widefield')">
+            <span class="norm-only">✨ Widefield (5s)</span><span class="fnaf-only">WIDEFIELD 5s</span>
+          </button>
+          <button onclick="applyAstroPreset('daylight')">
+            <span class="norm-only">☀️ Normal (1/25s)</span><span class="fnaf-only">STANDARD CCTV</span>
+          </button>
+        </div>
+
+        <h3 style="margin-top: 14px;">
+          <span class="norm-only">Live Stacking (Casual EAA)</span>
+          <span class="fnaf-only">SIGNAL ACCUMULATOR</span>
+        </h3>
+        <div class="btn-group">
+          <button id="btnStackOff" class="active" onclick="setStackMode('Off')">Off</button>
+          <button id="btnStackAvg" onclick="setStackMode('Average')">Average</button>
+          <button id="btnStackAdd" onclick="setStackMode('Additive')">Additive</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+          <span id="stackStatusText" style="font-size:0.75rem; font-family:monospace; color:var(--ochre-bright);">Stacked: 0 frames</span>
+          <button style="flex:none; padding:4px 8px; font-size:0.7rem;" onclick="resetStack()">Reset Stack</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Dedicated Astrophotography Manual Controls -->
+    <div class="card">
+      <h3>
+        <span class="norm-only">Manual Astrophotography & Camera Controls</span>
+        <span class="fnaf-only">SENSOR TIMING & LONG EXPOSURE ENGINE</span>
+      </h3>
+
+      <!-- Exposure Control -->
+      <div class="control-row">
+        <div class="control-header">
+          <span>EXPOSURE TIME (SHUTTER DURATION)</span>
+          <span class="value-badge" id="dispExp">0.040s (1/25s)</span>
+        </div>
+        <div class="slider-container">
+          <input type="range" id="sliderExp" min="0" max="8" step="1" value="2" oninput="onExpSliderChange(this.value)">
+          <input type="number" id="numExp" class="custom-input" min="0.001" max="60.0" step="0.1" value="0.04" onchange="onCustomExpChange(this.value)">
+          <span style="font-size:0.75rem; font-family:monospace;">sec</span>
+        </div>
+        <div class="btn-group">
+          <button onclick="setExposure(0.001)">1/1000s</button>
+          <button onclick="setExposure(0.01)">1/100s</button>
+          <button onclick="setExposure(0.04)">1/25s</button>
+          <button onclick="setExposure(1.0)">1.0s</button>
+          <button onclick="setExposure(2.0)">2.0s</button>
+          <button onclick="setExposure(5.0)">5.0s</button>
+          <button onclick="setExposure(10.0)">10.0s</button>
+          <button onclick="setExposure(30.0)">30.0s</button>
+        </div>
+      </div>
+
+      <!-- Sensor Gain / ISO -->
+      <div class="control-row">
+        <div class="control-header">
+          <span>SENSOR GAIN / ISO SENSITIVITY</span>
+          <span class="value-badge" id="dispGain">1.0x (0 dB • ISO 100)</span>
+        </div>
+        <div class="slider-container">
+          <input type="range" id="sliderGain" min="0" max="6" step="1" value="0" oninput="onGainSliderChange(this.value)">
+        </div>
+        <div class="btn-group">
+          <button onclick="setGain(1.0)">1x (0dB)</button>
+          <button onclick="setGain(2.0)">2x (6dB)</button>
+          <button onclick="setGain(4.0)">4x (12dB)</button>
+          <button onclick="setGain(8.0)">8x (18dB)</button>
+          <button onclick="setGain(16.0)">16x (24dB)</button>
+          <button onclick="setGain(32.0)">32x (30dB)</button>
+          <button onclick="setGain(64.0)">64x (36dB)</button>
+        </div>
+      </div>
+
+      <!-- Framerate & Resolution Row -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="control-row">
+          <div class="control-header">
+            <span>TARGET FRAMERATE (FPS)</span>
+            <span class="value-badge" id="dispFps">25.0 FPS</span>
+          </div>
+          <select id="selFps" class="astro-select" onchange="onFpsSelect(this.value)">
+            <option value="auto">Auto (Match Exposure Duration)</option>
+            <option value="30">30.0 FPS (Fast Video)</option>
+            <option value="25" selected>25.0 FPS (Standard 1/25s)</option>
+            <option value="15">15.0 FPS</option>
+            <option value="5">5.0 FPS</option>
+            <option value="1">1.0 FPS (1s interval)</option>
+            <option value="0.5">0.5 FPS (2s interval)</option>
+            <option value="0.2">0.2 FPS (5s interval)</option>
+            <option value="0.1">0.1 FPS (10s long exposure)</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <div class="control-header">
+            <span>SENSOR ARRAY / RESOLUTION</span>
+            <span class="value-badge" id="dispRes">1280x720</span>
+          </div>
+          <select id="selRes" class="astro-select" onchange="onResSelect(this.value)">
+            <option value="Hd720p" selected>1280x720 (16:9 HD Standard)</option>
+            <option value="Astro1280x960">1280x960 (4:3 SC1135 Astro Native)</option>
+            <option value="Sd360p">640x360 (2x2 Binning - Faint Light)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Auto Histogram Stretch & Transfer Function -->
+      <div class="control-row" style="margin-top: 10px;">
+        <div class="control-header">
+          <span>AUTO HISTOGRAM STRETCH / TRANSFER FUNCTION</span>
+          <span class="value-badge" id="dispStretch">Auto MTF (PixInsight STF)</span>
+        </div>
+        <select id="selStretch" class="astro-select" onchange="onStretchSelect(this.value)">
+          <option value="none">Linear Raw (No Stretch)</option>
+          <option value="auto" selected>Auto MTF (PixInsight / Siril STF)</option>
+          <option value="asinh">Arcsinh Stretch (Color & Star Cores)</option>
+          <option value="aggressive">Aggressive (Faint Nebulae / DSOs)</option>
+        </select>
+      </div>
+    </div>
+  </main>
+
+  <script src="/jmuxer.min.js"></script>
+  <script src="/app.js?v=2"></script>
+</body>
+</html>

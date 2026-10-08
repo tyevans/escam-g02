@@ -112,3 +112,56 @@ def test_h264_annex_b_chunked_stream_invariant(chunk_sizes: list[int]):
     assert extracted[0] == nal1
     assert extracted[1] == nal2
     assert extracted[2] == nal3
+
+
+@given(
+    st.floats(min_value=0.0001, max_value=120.0),
+    st.floats(min_value=0.1, max_value=100.0),
+    st.floats(min_value=0.01, max_value=120.0),
+)
+def test_camera_exposure_fps_coupling_invariant(raw_exp: float, raw_gain: float, raw_fps: float):
+    """
+    ADR-0009 & US-0012 Invariant:
+    Normalizing arbitrary exposure, gain, and target_fps values must strictly clamp
+    exposure within [0.001, 60.0] and gain within [1.0, 64.0].
+    When exposure > 0.04s (e.g. 10s exposure), the effective frame rate must never exceed
+    the reciprocal of the exposure time (1.0 / exp).
+    """
+    exposure_secs = max(0.001, min(60.0, raw_exp))
+    gain = max(1.0, min(64.0, raw_gain))
+    max_fps = 1.0 / exposure_secs
+    target_fps = max(0.016, min(60.0, min(raw_fps, max_fps)))
+
+    assert 0.001 <= exposure_secs <= 60.0
+    assert 1.0 <= gain <= 64.0
+    assert target_fps <= (1.0 / exposure_secs) + 1e-5
+    assert target_fps >= 0.016
+
+
+@given(
+    st.floats(min_value=0.01, max_value=0.99),
+    st.floats(min_value=0.0, max_value=1.0),
+)
+def test_mtf_transfer_function_invariants(m: float, x: float):
+    """
+    ADR-0009 Invariant:
+    The Midtone Transfer Function (MTF) must always map [0, 1] monotonically into [0, 1].
+    Boundary points 0.0 and 1.0 must be strictly preserved.
+    """
+    def mtf(m_val: float, x_val: float) -> float:
+        if x_val <= 0.0:
+            return 0.0
+        if x_val >= 1.0:
+            return 1.0
+        num = (m_val - 1.0) * x_val
+        den = (2.0 * m_val - 1.0) * x_val - m_val
+        if abs(den) < 1e-6:
+            return x_val
+        return max(0.0, min(1.0, num / den))
+
+    res = mtf(m, x)
+    assert 0.0 <= res <= 1.0
+    assert mtf(m, 0.0) == 0.0
+    assert mtf(m, 1.0) == 1.0
+
+

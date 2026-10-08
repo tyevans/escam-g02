@@ -7,7 +7,10 @@
 //! - Embedded INDI Astronomy Protocol Server (TCP 7624)
 //! - Hardware Watchdog Management
 
+pub mod api_astro;
+pub mod api_system;
 mod http;
+pub mod sensor_ctl;
 
 use escam_astro::IndiServer;
 use escam_core::{CameraConfig, CameraStatus};
@@ -22,6 +25,9 @@ use tracing::info;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    unsafe {
+        libc::signal(libc::SIGHUP, libc::SIG_IGN);
+    }
     println!("==================================================");
     println!("🚀 Starting escamd • ESCAM G02 Pure Rust Firmware (GK7102C)");
     println!("==================================================");
@@ -97,6 +103,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Build AppState with Live Frame Buffer & Dual-Mode Video Ingestion (VPU Socket / RTSP)
     let initial_frame = escam_web::assets::LIVE_FRAME_JPEG.to_vec();
     let frame = Arc::new(tokio::sync::RwLock::new(initial_frame));
+    let frame_for_init = frame.clone();
+    tokio::spawn(async move {
+        if let Some(jpg) = crate::sensor_ctl::fetch_camera_jpeg().await {
+            *frame_for_init.write().await = jpg;
+        }
+    });
 
     let (video_broadcast, _) = tokio::sync::broadcast::channel::<Vec<u8>>(16);
     let video_sender = video_broadcast.clone();
@@ -135,6 +147,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ircut: ircut.clone(),
         frame,
         video_broadcast,
+        stacker: Arc::new(Mutex::new(None)),
     };
 
     let bind_addr = std::env::var("ESCAM_BIND").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
@@ -165,7 +178,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // 5. Serve HTTP/1 Frontdoor
+    // 5. Vendor IPC Supervisor (ensures camera sensor daemon stays alive)
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+            sensor_ctl::ensure_vendor_ipc().await;
+        }
+    });
+
+    // 6. Serve HTTP/1 Frontdoor
     eprintln!("[escamd] Step 8: Entering HTTP/1 accept loop...");
     loop {
         let (stream, remote_addr) = listener.accept().await?;

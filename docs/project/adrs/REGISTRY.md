@@ -20,3 +20,7 @@
 | ADR-0018 | Astrophotography Engine, Raw 10-bit Bayer Frames, and Embedded INDI Protocol | Accepted | 2026-10-05 |
 | ADR-0019 | Vendor Software Ejection, Clean Boot, and Init Orchestration | Accepted | 2026-10-05 |
 | ADR-0020 | Zero-Vendor Hardware Video Encoding and VPU Ingestion Architecture | Accepted | 2026-10-05 |
+| ADR-0021 | Binary Footprint Reduction, Zero-Allocation Media Pipelines, and Sidereal Tracking | Accepted | 2026-10-06 |
+| ADR-0022 | Astronomical Calibration Frames, Master Dark/Flat/Bias Subtraction, and WCS FITS Metadata | Accepted | 2026-10-06 |
+| ADR-0023 | Real-Time Star Detection, FWHM Seeing Analysis, and Closed-Loop Optical Autoguiding | Accepted | 2026-10-06 |
+| ADR-0024 | Transient Event Detection, Meteor Streak Analyzer, and Zero-Copy Ringbuffer Video Recording | Accepted | 2026-10-06 |

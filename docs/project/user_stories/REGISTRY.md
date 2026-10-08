@@ -16,3 +16,19 @@
 | US-0012 | Terminate vendor daemons and establish clean init runner | Accepted | Elena | system | PRD-0006 |
 | US-0013 | Measure and verify boot time <2s and RAM consumption <8MB | Accepted | Elena | system | PRD-0006 |
 | US-0014 | Ingest Zero-Vendor Hardware H.264 VPU Stream via Unix Domain Socket | Accepted | Elena | media | PRD-0006 |
+| US-0015 | Binary Footprint Reduction and Link-Time Optimization | Accepted | Elena | core | PRD-0007 |
+| US-0016 | Celestial Sidereal Rate Tracking Engine | Accepted | Marcus | ptz | PRD-0007 |
+| US-0017 | Real-Time Multi-Frame Linear Photon Stacking | Accepted | Marcus | astro | PRD-0007 |
+| US-0018 | Expose PTZ Motors as an INDI Telescope Mount Device | Accepted | Marcus | astro | PRD-0007 |
+| US-0019 | Master Dark, Flat, and Bias Astronomical Calibration Frame Engine | Accepted | Marcus | astro | PRD-0008 |
+| US-0020 | Full FITS WCS Astrometric Metadata and IAU Standard Headers | Accepted | Marcus | astro | PRD-0008 |
+| US-0021 | Real-Time Star Detection, Centroiding, and FWHM Seeing Focus Metric | Accepted | Marcus | astro | PRD-0008 |
+| US-0022 | Transient Streak Detector for Meteors, Fireballs, and Satellites | Accepted | Alex | astro | PRD-0008 |
+| US-0023 | Zero-Copy Rolling Circular Pre-Roll Buffer and Event Video Recorder | Accepted | Elena | media | PRD-0008 |
+| US-0024 | Celestial Sky Map and Target Catalog Slew Controller | Accepted | Marcus | ptz | PRD-0008 |
+| US-0025 | Mechanical Gear Backlash Compensation and Autonomous Soft-Homing | Accepted | Elena | ptz | PRD-0008 |
+| US-0026 | Sub-Millisecond SNTP Precision Astronomical Clock and Midpoint Stamping | Accepted | Marcus | system | PRD-0008 |
+| US-0027 | Closed-Loop Optical Autoguider and Sub-Pixel Star Drift Tracking | Accepted | Marcus | ptz | PRD-0008 |
+| US-0028 | Direct Sensor I2C Register Control and Shutter Integration Timing | Accepted | Elena | driver | PRD-0008 |
+| US-0029 | Vendor Firmware Debloater and Clean-Boot Security Lockdown | Accepted | Elena | system | PRD-0008 |
+| US-0030 | Comprehensive OpenAPI 3.1 Specification and Diataxis Documentation Suite | Accepted | Marcus | core | PRD-0008 |

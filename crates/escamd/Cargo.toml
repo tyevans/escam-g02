@@ -27,4 +27,6 @@ tower = { version = "0.5", features = ["util"] }
 serde_json = "1.0"
 sha1 = "0.10"
 base64 = "0.22"
+lazy_static = "1.5"
+libc = "0.2"
 
